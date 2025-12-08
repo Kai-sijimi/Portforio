@@ -178,7 +178,7 @@ app.get('/', (c) => {
             display: flex;
             flex-direction: column;
             justify-content: center;
-            padding: 4rem 3rem;
+            padding: 3rem;
         }
 
         .hero-label {
@@ -242,7 +242,7 @@ app.get('/', (c) => {
 
         /* ========== Section Styles ========== */
         section {
-            padding: 5rem 3rem;
+            padding: 3rem;
         }
 
         .section-label {
@@ -257,7 +257,7 @@ app.get('/', (c) => {
         .section-title {
             font-size: 1.25rem;
             font-weight: 400;
-            margin-bottom: 2rem;
+            margin-bottom: 1.5rem;
         }
 
         /* ========== About Section ========== */
@@ -272,7 +272,7 @@ app.get('/', (c) => {
         .about-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 3rem;
+            gap: 2rem;
         }
 
         .about-text {
@@ -292,8 +292,8 @@ app.get('/', (c) => {
         .about-stats {
             display: flex;
             gap: 3rem;
-            margin-top: 2rem;
-            padding-top: 2rem;
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
             border-top: 1px solid var(--border);
         }
 
@@ -308,6 +308,32 @@ app.get('/', (c) => {
             color: var(--accent);
             letter-spacing: 0.1em;
             text-transform: uppercase;
+        }
+
+        /* ========== Skills Section ========== */
+        .skills-section {
+            border-bottom: 1px solid var(--border);
+        }
+
+        .skills-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            max-width: 800px;
+        }
+
+        .skill-tag {
+            font-size: 0.7rem;
+            color: var(--accent);
+            padding: 0.4rem 0.8rem;
+            border: 1px solid var(--border);
+            border-radius: 2px;
+            transition: all 0.2s ease;
+        }
+
+        .skill-tag:hover {
+            color: var(--text);
+            border-color: var(--accent);
         }
 
         /* ========== Expertise Section ========== */
@@ -495,15 +521,15 @@ app.get('/', (c) => {
             }
 
             .hero-content {
-                padding: 3rem 1.5rem;
+                padding: 2rem 1.5rem;
             }
 
             .hero-image {
-                min-height: 200px;
+                min-height: 180px;
             }
 
             section {
-                padding: 3rem 1.5rem;
+                padding: 2rem 1.5rem;
             }
 
             .about-grid {
@@ -630,6 +656,39 @@ app.get('/', (c) => {
                     <div class="stat-number">2024</div>
                     <div class="stat-label">Active</div>
                 </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Skills Section -->
+    <section class="skills-section">
+        <div class="reveal">
+            <p class="section-label">Skills</p>
+            <h2 class="section-title">スキルスタック</h2>
+            <div class="skills-grid">
+                <span class="skill-tag">Python</span>
+                <span class="skill-tag">HTML</span>
+                <span class="skill-tag">CSS</span>
+                <span class="skill-tag">ChatGPT</span>
+                <span class="skill-tag">Claude</span>
+                <span class="skill-tag">Gemini</span>
+                <span class="skill-tag">Midjourney</span>
+                <span class="skill-tag">Stable Diffusion</span>
+                <span class="skill-tag">Unity</span>
+                <span class="skill-tag">Unreal Engine</span>
+                <span class="skill-tag">Blender</span>
+                <span class="skill-tag">Figma</span>
+                <span class="skill-tag">Notion</span>
+                <span class="skill-tag">WordPress</span>
+                <span class="skill-tag">Google Analytics</span>
+                <span class="skill-tag">SEO</span>
+                <span class="skill-tag">SNS運用</span>
+                <span class="skill-tag">取材・インタビュー</span>
+                <span class="skill-tag">記事執筆</span>
+                <span class="skill-tag">編集</span>
+                <span class="skill-tag">リサーチ</span>
+                <span class="skill-tag">英語文献読解</span>
+                <span class="skill-tag">英語スピーキング</span>
             </div>
         </div>
     </section>
