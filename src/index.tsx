@@ -33,25 +33,23 @@ app.get('/', (c) => {
             font-family: 'Inter', 'Noto Sans JP', sans-serif;
             background-color: var(--base);
             color: var(--text);
-            line-height: 1.8;
+            line-height: 1.7;
             font-weight: 300;
-            letter-spacing: 0.02em;
         }
 
-        /* ========== Minimal Animations ========== */
+        /* ========== Animations ========== */
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
+            from { opacity: 0; transform: translateY(16px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
         .fade-in {
             opacity: 0;
-            animation: fadeIn 0.8s ease-out forwards;
+            animation: fadeIn 0.6s ease-out forwards;
         }
 
-        .delay-1 { animation-delay: 0.2s; }
-        .delay-2 { animation-delay: 0.4s; }
-        .delay-3 { animation-delay: 0.6s; }
+        .delay-1 { animation-delay: 0.15s; }
+        .delay-2 { animation-delay: 0.3s; }
 
         /* ========== Navigation ========== */
         nav {
@@ -60,25 +58,25 @@ app.get('/', (c) => {
             left: 0;
             right: 0;
             z-index: 100;
-            padding: 2rem 4rem;
+            padding: 1rem 3rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
             background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
+            backdrop-filter: blur(8px);
+            border-bottom: 1px solid var(--border);
         }
 
         .logo {
-            font-size: 0.875rem;
+            font-size: 0.9rem;
             font-weight: 400;
             color: var(--text);
             text-decoration: none;
-            letter-spacing: 0.1em;
         }
 
         .nav-links {
             display: flex;
-            gap: 3rem;
+            gap: 2rem;
             list-style: none;
         }
 
@@ -86,9 +84,7 @@ app.get('/', (c) => {
             color: var(--accent);
             text-decoration: none;
             font-size: 0.8rem;
-            font-weight: 400;
-            letter-spacing: 0.05em;
-            transition: color 0.3s ease;
+            transition: color 0.2s ease;
         }
 
         .nav-links a:hover {
@@ -97,76 +93,62 @@ app.get('/', (c) => {
 
         /* ========== Hero Section ========== */
         .hero {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
             min-height: 100vh;
-            display: flex;
-            align-items: center;
-            padding: 0 4rem;
-            position: relative;
-        }
-
-        .hero-image {
-            position: absolute;
-            top: 0;
-            right: 0;
-            width: 50%;
-            height: 100%;
-            background-image: url('https://images.unsplash.com/photo-1497366216548-37526070297c?w=1200&q=80');
-            background-size: cover;
-            background-position: center;
-            filter: grayscale(30%);
-            opacity: 0.9;
         }
 
         .hero-content {
-            max-width: 540px;
-            z-index: 1;
-            padding: 8rem 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 6rem 3rem 4rem;
         }
 
         .hero-label {
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             font-weight: 400;
-            letter-spacing: 0.2em;
+            letter-spacing: 0.15em;
             color: var(--accent);
-            margin-bottom: 2rem;
+            margin-bottom: 1rem;
             text-transform: uppercase;
         }
 
         .hero-title {
-            font-size: 2.5rem;
-            font-weight: 300;
-            letter-spacing: -0.02em;
+            font-size: 2rem;
+            font-weight: 400;
+            letter-spacing: -0.01em;
             line-height: 1.3;
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.25rem;
         }
 
         .hero-subtitle {
-            font-size: 1rem;
+            font-size: 0.9rem;
             font-weight: 300;
             color: var(--accent);
-            margin-bottom: 3rem;
+            margin-bottom: 1.5rem;
         }
 
         .hero-description {
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             color: var(--accent);
-            line-height: 2;
-            margin-bottom: 3rem;
+            line-height: 1.9;
+            margin-bottom: 2rem;
+            max-width: 400px;
         }
 
         .hero-links {
             display: flex;
-            gap: 2rem;
+            gap: 1.5rem;
         }
 
         .hero-link {
             font-size: 0.8rem;
             color: var(--text);
             text-decoration: none;
-            letter-spacing: 0.05em;
-            padding-bottom: 0.25rem;
+            padding-bottom: 2px;
             border-bottom: 1px solid var(--text);
-            transition: all 0.3s ease;
+            transition: all 0.2s ease;
         }
 
         .hero-link:hover {
@@ -174,79 +156,137 @@ app.get('/', (c) => {
             border-color: var(--accent);
         }
 
+        .hero-image {
+            background-image: url('https://images.unsplash.com/photo-1497366216548-37526070297c?w=1200&q=80');
+            background-size: cover;
+            background-position: center;
+            filter: grayscale(20%);
+        }
+
         /* ========== Section Styles ========== */
         section {
-            padding: 10rem 4rem;
+            padding: 5rem 3rem;
         }
 
         .section-label {
-            font-size: 0.7rem;
+            font-size: 0.65rem;
             font-weight: 400;
-            letter-spacing: 0.2em;
+            letter-spacing: 0.15em;
             color: var(--accent);
             text-transform: uppercase;
-            margin-bottom: 1rem;
+            margin-bottom: 0.5rem;
         }
 
         .section-title {
-            font-size: 1.5rem;
-            font-weight: 300;
-            letter-spacing: -0.01em;
-            margin-bottom: 4rem;
-        }
-
-        /* ========== About Section ========== */
-        .about {
-            max-width: 720px;
-        }
-
-        .about-text {
-            font-size: 1rem;
-            color: var(--accent);
-            line-height: 2.2;
+            font-size: 1.25rem;
+            font-weight: 400;
             margin-bottom: 2rem;
         }
 
+        /* ========== About Section ========== */
+        .about-section {
+            background: #FAFAFA;
+        }
+
+        .about-wrapper {
+            max-width: 800px;
+        }
+
+        .about-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+        }
+
+        .about-text {
+            font-size: 0.9rem;
+            color: var(--accent);
+            line-height: 1.9;
+        }
+
         .about-quote {
-            padding-left: 2rem;
-            border-left: 1px solid var(--border);
-            font-size: 0.95rem;
+            padding-left: 1.5rem;
+            border-left: 2px solid var(--border);
+            font-size: 0.9rem;
             color: var(--text);
-            line-height: 2;
-            margin: 3rem 0;
+            line-height: 1.8;
         }
 
         .about-stats {
             display: flex;
-            gap: 6rem;
-            margin-top: 4rem;
-            padding-top: 4rem;
+            gap: 3rem;
+            margin-top: 2rem;
+            padding-top: 2rem;
             border-top: 1px solid var(--border);
         }
 
-        .stat-item {
-            text-align: left;
-        }
-
         .stat-number {
-            font-size: 1.5rem;
-            font-weight: 300;
-            margin-bottom: 0.5rem;
+            font-size: 1.25rem;
+            font-weight: 400;
+            margin-bottom: 0.25rem;
         }
 
         .stat-label {
-            font-size: 0.7rem;
+            font-size: 0.65rem;
             color: var(--accent);
             letter-spacing: 0.1em;
             text-transform: uppercase;
         }
 
         /* ========== Expertise Section ========== */
-        .expertise {
-            background: var(--base);
+        .expertise-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1px;
+            background: var(--border);
+            max-width: 1000px;
         }
 
-        .expertise-list {
+        .expertise-item {
+            background: var(--base);
+            padding: 1.5rem;
+        }
+
+        .expertise-title {
+            font-size: 0.85rem;
+            font-weight: 400;
+            margin-bottom: 0.5rem;
+        }
+
+        .expertise-desc {
+            font-size: 0.75rem;
+            color: var(--accent);
+            line-height: 1.7;
+        }
+
+        /* ========== Works Section ========== */
+        .works-section {
+            background: #FAFAFA;
+        }
+
+        .works-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-bottom: 1.5rem;
+        }
+
+        .works-header .section-title {
+            margin-bottom: 0;
+        }
+
+        .works-more {
+            font-size: 0.75rem;
+            color: var(--accent);
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        .works-more:hover {
+            color: var(--text);
+        }
+
+        .works-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             gap: 1px;
@@ -254,108 +294,70 @@ app.get('/', (c) => {
             max-width: 900px;
         }
 
-        .expertise-item {
-            background: var(--base);
-            padding: 3rem;
-        }
-
-        .expertise-title {
-            font-size: 0.95rem;
-            font-weight: 400;
-            margin-bottom: 1rem;
-        }
-
-        .expertise-desc {
-            font-size: 0.85rem;
-            color: var(--accent);
-            line-height: 1.8;
-        }
-
-        /* ========== Works Section ========== */
-        .works-image {
-            width: 100%;
-            height: 400px;
-            background-image: url('https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?w=1600&q=80');
-            background-size: cover;
-            background-position: center;
-            filter: grayscale(40%);
-            margin-bottom: 6rem;
-        }
-
-        .works-list {
-            max-width: 720px;
-        }
-
         .work-item {
-            padding: 2.5rem 0;
-            border-bottom: 1px solid var(--border);
-            display: block;
+            background: #FAFAFA;
+            padding: 1.5rem;
             text-decoration: none;
             color: inherit;
-            transition: opacity 0.3s ease;
-        }
-
-        .work-item:first-child {
-            border-top: 1px solid var(--border);
+            transition: background 0.2s ease;
         }
 
         .work-item:hover {
-            opacity: 0.6;
+            background: var(--base);
         }
 
         .work-meta {
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            margin-bottom: 0.75rem;
+            margin-bottom: 0.5rem;
         }
 
         .work-category {
-            font-size: 0.7rem;
+            font-size: 0.65rem;
             color: var(--accent);
             letter-spacing: 0.1em;
             text-transform: uppercase;
         }
 
         .work-date {
-            font-size: 0.7rem;
+            font-size: 0.65rem;
             color: var(--accent);
         }
 
         .work-title {
-            font-size: 1rem;
+            font-size: 0.85rem;
             font-weight: 400;
             line-height: 1.6;
         }
 
         /* ========== Contact Section ========== */
-        .contact {
-            max-width: 540px;
-            padding-bottom: 12rem;
+        .contact-wrapper {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            max-width: 800px;
         }
 
         .contact-text {
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             color: var(--accent);
-            line-height: 2;
-            margin-bottom: 3rem;
+            line-height: 1.8;
         }
 
         .contact-links {
             display: flex;
             flex-direction: column;
-            gap: 1.5rem;
+            gap: 1rem;
         }
 
         .contact-link {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
             font-size: 0.85rem;
             color: var(--text);
             text-decoration: none;
-            letter-spacing: 0.02em;
-            display: inline-flex;
-            align-items: center;
-            gap: 1rem;
-            transition: color 0.3s ease;
+            transition: color 0.2s ease;
         }
 
         .contact-link:hover {
@@ -363,31 +365,30 @@ app.get('/', (c) => {
         }
 
         .contact-link span {
-            font-size: 0.7rem;
+            font-size: 0.65rem;
             color: var(--accent);
             letter-spacing: 0.1em;
             text-transform: uppercase;
+            width: 2.5rem;
         }
 
         /* ========== Footer ========== */
         footer {
-            padding: 3rem 4rem;
+            padding: 1.5rem 3rem;
             border-top: 1px solid var(--border);
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
 
-        footer p {
+        footer p, footer a {
             font-size: 0.7rem;
             color: var(--accent);
-            letter-spacing: 0.05em;
         }
 
         footer a {
-            color: var(--accent);
             text-decoration: none;
-            transition: color 0.3s ease;
+            transition: color 0.2s ease;
         }
 
         footer a:hover {
@@ -395,53 +396,75 @@ app.get('/', (c) => {
         }
 
         /* ========== Responsive ========== */
-        @media (max-width: 968px) {
+        @media (max-width: 900px) {
             nav {
-                padding: 1.5rem 2rem;
+                padding: 1rem 1.5rem;
             }
 
             .nav-links {
                 display: none;
             }
 
-            section {
-                padding: 6rem 2rem;
-            }
-
             .hero {
-                padding: 0 2rem;
-            }
-
-            .hero-image {
-                width: 100%;
-                opacity: 0.3;
-            }
-
-            .hero-content {
-                padding: 10rem 0 6rem;
-            }
-
-            .about-stats {
-                flex-direction: column;
-                gap: 2rem;
-            }
-
-            .expertise-list {
                 grid-template-columns: 1fr;
             }
 
+            .hero-content {
+                padding: 5rem 1.5rem 3rem;
+            }
+
+            .hero-image {
+                height: 250px;
+            }
+
+            section {
+                padding: 3rem 1.5rem;
+            }
+
+            .about-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            .about-stats {
+                gap: 2rem;
+            }
+
+            .expertise-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .works-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .contact-wrapper {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
             footer {
+                padding: 1.5rem;
                 flex-direction: column;
-                gap: 1rem;
-                text-align: center;
+                gap: 0.5rem;
             }
         }
 
-        /* ========== Scroll Animations ========== */
+        @media (max-width: 600px) {
+            .expertise-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .about-stats {
+                flex-wrap: wrap;
+            }
+        }
+
+        /* ========== Scroll Animation ========== */
         .reveal {
             opacity: 0;
-            transform: translateY(30px);
-            transition: all 0.8s ease;
+            transform: translateY(20px);
+            transition: all 0.5s ease;
         }
 
         .reveal.active {
@@ -464,51 +487,48 @@ app.get('/', (c) => {
 
     <!-- Hero Section -->
     <section class="hero">
-        <div class="hero-image"></div>
         <div class="hero-content">
-            <p class="hero-label fade-in">Technology Journalist</p>
+            <p class="hero-label fade-in">Technology Journalist @ innovaTopia</p>
             <h1 class="hero-title fade-in delay-1">乗杉 海</h1>
             <p class="hero-subtitle fade-in delay-1">Kai Norisugi</p>
             <p class="hero-description fade-in delay-2">
-                SF小説やゲームカルチャーをきっかけに、<br>
-                エンターテインメントとテクノロジーが<br>
-                交わる領域を探究しています。
+                SF小説やゲームカルチャーをきっかけに、エンターテインメントとテクノロジーが交わる領域を探究。AI、XR、半導体、宇宙技術など先端分野の最新動向を発信しています。
             </p>
-            <div class="hero-links fade-in delay-3">
+            <div class="hero-links fade-in delay-2">
                 <a href="https://innovatopia.jp/author/kai/" target="_blank" class="hero-link">記事を読む</a>
                 <a href="https://x.com/Kai_tech_XR" target="_blank" class="hero-link">X / Twitter</a>
             </div>
         </div>
+        <div class="hero-image"></div>
     </section>
 
     <!-- About Section -->
-    <section id="about">
-        <div class="about reveal">
+    <section id="about" class="about-section">
+        <div class="about-wrapper reveal">
             <p class="section-label">About</p>
             <h2 class="section-title">テクノロジーの未来を伝える</h2>
-            <p class="about-text">
-                innovaTopiaで活動するテクノロジーライターとして、
-                AI、XR、半導体、宇宙技術など先端分野の最新動向を発信しています。
-            </p>
-            <blockquote class="about-quote">
-                今起きている技術革新が、SF作品で描かれた未来と<br>
-                どう重なるのか。その視点から、複雑な技術を<br>
-                分かりやすく伝えることを心がけています。
-            </blockquote>
-            <p class="about-text">
-                Apple、Google、Meta、NVIDIA など大手IT企業の動向から、
-                スタートアップの革新的技術まで幅広くカバーしています。
-            </p>
+            <div class="about-grid">
+                <div>
+                    <p class="about-text">
+                        innovaTopiaで活動するテクノロジーライターとして、AI、XR、半導体、宇宙技術など先端分野の最新動向を発信。Apple、Google、Meta、NVIDIAなど大手IT企業の動向から、スタートアップの革新的技術まで幅広くカバーしています。
+                    </p>
+                </div>
+                <div>
+                    <blockquote class="about-quote">
+                        今起きている技術革新が、SF作品で描かれた未来とどう重なるのか。その視点から、複雑な技術を分かりやすく伝えることを心がけています。
+                    </blockquote>
+                </div>
+            </div>
             <div class="about-stats">
-                <div class="stat-item">
+                <div>
                     <div class="stat-number">500+</div>
                     <div class="stat-label">Articles</div>
                 </div>
-                <div class="stat-item">
+                <div>
                     <div class="stat-number">8</div>
                     <div class="stat-label">Tech Fields</div>
                 </div>
-                <div class="stat-item">
+                <div>
                     <div class="stat-number">2024</div>
                     <div class="stat-label">Active</div>
                 </div>
@@ -517,51 +537,55 @@ app.get('/', (c) => {
     </section>
 
     <!-- Expertise Section -->
-    <section id="expertise" class="expertise">
+    <section id="expertise">
         <p class="section-label reveal">Expertise</p>
         <h2 class="section-title reveal">専門分野</h2>
-        <div class="expertise-list reveal">
+        <div class="expertise-grid reveal">
             <div class="expertise-item">
                 <h3 class="expertise-title">AI / 人工知能</h3>
-                <p class="expertise-desc">生成AI、LLM、AIエージェントの最新動向と社会的インパクトを分析</p>
+                <p class="expertise-desc">生成AI、LLM、AIエージェントの最新動向</p>
             </div>
             <div class="expertise-item">
                 <h3 class="expertise-title">XR / VR / AR</h3>
-                <p class="expertise-desc">Apple Vision Pro、Meta Quest など空間コンピューティングの進化を追跡</p>
+                <p class="expertise-desc">Vision Pro、Quest など空間コンピューティング</p>
             </div>
             <div class="expertise-item">
                 <h3 class="expertise-title">半導体技術</h3>
-                <p class="expertise-desc">Apple M シリーズ、NVIDIA GPU など AI 時代を支えるチップ開発</p>
+                <p class="expertise-desc">Apple M、NVIDIA GPU などチップ開発</p>
             </div>
             <div class="expertise-item">
                 <h3 class="expertise-title">宇宙技術</h3>
-                <p class="expertise-desc">恒星間天体、惑星防衛、宇宙探査ミッションに関する最新科学</p>
+                <p class="expertise-desc">惑星防衛、宇宙探査ミッションの最新科学</p>
             </div>
             <div class="expertise-item">
                 <h3 class="expertise-title">ゲーム / エンタメ</h3>
-                <p class="expertise-desc">Unreal Engine、ゲーム AI 開発などテクノロジーとエンタメの融合</p>
+                <p class="expertise-desc">Unreal Engine、ゲームAI開発</p>
             </div>
             <div class="expertise-item">
                 <h3 class="expertise-title">ロボティクス</h3>
-                <p class="expertise-desc">外骨格スーツ、産業用ロボット、人間の能力を拡張する技術</p>
+                <p class="expertise-desc">外骨格、産業用ロボット、自律システム</p>
             </div>
             <div class="expertise-item">
-                <h3 class="expertise-title">サイバーセキュリティ</h3>
-                <p class="expertise-desc">ランサムウェア、データ漏洩、フォレンジック技術の課題</p>
+                <h3 class="expertise-title">セキュリティ</h3>
+                <p class="expertise-desc">ランサムウェア、フォレンジック技術</p>
             </div>
             <div class="expertise-item">
-                <h3 class="expertise-title">ヘルスケアテック</h3>
-                <p class="expertise-desc">AI とメンタルヘルス、VR 療法、デジタルヘルスの未来</p>
+                <h3 class="expertise-title">ヘルスケア</h3>
+                <p class="expertise-desc">AIとメンタルヘルス、VR療法</p>
             </div>
         </div>
     </section>
 
     <!-- Works Section -->
-    <section id="works">
-        <div class="works-image"></div>
-        <p class="section-label reveal">Works</p>
-        <h2 class="section-title reveal">注目の記事</h2>
-        <div class="works-list reveal">
+    <section id="works" class="works-section">
+        <div class="works-header reveal">
+            <div>
+                <p class="section-label">Works</p>
+                <h2 class="section-title">注目の記事</h2>
+            </div>
+            <a href="https://innovatopia.jp/author/kai/" target="_blank" class="works-more">すべて見る →</a>
+        </div>
+        <div class="works-grid reveal">
             <a href="https://innovatopia.jp/vrar/vrar-news/73306/" target="_blank" class="work-item">
                 <div class="work-meta">
                     <span class="work-category">XR / 取材</span>
@@ -609,13 +633,14 @@ app.get('/', (c) => {
 
     <!-- Contact Section -->
     <section id="contact">
-        <div class="contact reveal">
-            <p class="section-label">Contact</p>
-            <h2 class="section-title">お問い合わせ</h2>
-            <p class="contact-text">
-                取材依頼、コラボレーション、<br>
-                その他のお問い合わせはこちらから。
-            </p>
+        <div class="contact-wrapper reveal">
+            <div>
+                <p class="section-label">Contact</p>
+                <h2 class="section-title">お問い合わせ</h2>
+                <p class="contact-text">
+                    取材依頼、コラボレーション、その他のお問い合わせはお気軽にどうぞ。
+                </p>
+            </div>
             <div class="contact-links">
                 <a href="https://x.com/Kai_tech_XR" target="_blank" class="contact-link">
                     <span>X</span>
@@ -632,19 +657,16 @@ app.get('/', (c) => {
     <!-- Footer -->
     <footer>
         <p>© 2025 乗杉 海</p>
-        <p><a href="https://innovatopia.jp/" target="_blank">innovaTopia</a></p>
+        <a href="https://innovatopia.jp/" target="_blank">innovaTopia</a>
     </footer>
 
     <script>
-        // Scroll reveal
         const revealElements = document.querySelectorAll('.reveal');
 
         const revealOnScroll = () => {
             revealElements.forEach(element => {
                 const elementTop = element.getBoundingClientRect().top;
-                const windowHeight = window.innerHeight;
-
-                if (elementTop < windowHeight - 80) {
+                if (elementTop < window.innerHeight - 60) {
                     element.classList.add('active');
                 }
             });
@@ -653,16 +675,12 @@ app.get('/', (c) => {
         window.addEventListener('scroll', revealOnScroll);
         window.addEventListener('load', revealOnScroll);
 
-        // Smooth scroll
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function(e) {
                 e.preventDefault();
                 const target = document.querySelector(this.getAttribute('href'));
                 if (target) {
-                    target.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'start'
-                    });
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 }
             });
         });
