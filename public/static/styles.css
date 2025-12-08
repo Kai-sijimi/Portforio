@@ -1,10 +1,12 @@
 /* ==================== CSS Variables ==================== */
 :root {
+  /* Colors */
   --bg-dark: #0a0a0f;
   --bg-card: #12121a;
   --bg-hover: #1a1a25;
   --text-primary: #ffffff;
-  --text-secondary: #8a8a9a;
+  --text-secondary: #a0a0b0;
+  --text-muted: #707080;
   --accent: #00d4ff;
   --accent-dim: rgba(0, 212, 255, 0.15);
   --accent-glow: rgba(0, 212, 255, 0.4);
@@ -12,6 +14,31 @@
   --gradient-cyber: linear-gradient(135deg, #00d4ff 0%, #7b2cbf 100%);
   --error: #ff4757;
   --success: #2ed573;
+  
+  /* Typography Scale (反復) */
+  --font-base: 1rem;      /* 16px */
+  --font-sm: 0.875rem;    /* 14px */
+  --font-xs: 0.75rem;     /* 12px */
+  --font-lg: 1.125rem;    /* 18px */
+  --font-xl: 1.25rem;     /* 20px */
+  --font-2xl: 1.5rem;     /* 24px */
+  --font-3xl: 2rem;       /* 32px */
+  --font-4xl: 2.5rem;     /* 40px */
+  
+  /* Spacing Scale (近接・反復) */
+  --space-xs: 0.25rem;    /* 4px */
+  --space-sm: 0.5rem;     /* 8px */
+  --space-md: 1rem;       /* 16px */
+  --space-lg: 1.5rem;     /* 24px */
+  --space-xl: 2rem;       /* 32px */
+  --space-2xl: 3rem;      /* 48px */
+  --space-3xl: 4rem;      /* 64px */
+  
+  /* Line Height (可読性) */
+  --leading-tight: 1.25;
+  --leading-normal: 1.6;
+  --leading-relaxed: 1.8;
+  --leading-loose: 2;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -339,32 +366,39 @@ nav, .admin-nav {
   opacity: 0.5;
 }
 
-/* ==================== Section Styles ==================== */
+/* ==================== Section Styles (反復・整列) ==================== */
 section {
-  padding: 2.5rem 3rem;
+  padding: var(--space-3xl) var(--space-2xl);
   position: relative;
   z-index: 1;
 }
 
-.section-header { margin-bottom: 1.5rem; }
+/* 近接：セクションヘッダーをまとめる */
+.section-header { 
+  margin-bottom: var(--space-2xl);
+}
 
+/* 反復：ラベルのスタイルを統一 */
 .section-label {
   display: inline-block;
-  font-size: 0.65rem;
-  font-weight: 500;
-  letter-spacing: 0.2em;
+  font-size: var(--font-xs);
+  font-weight: 600;
+  letter-spacing: 0.15em;
   color: var(--accent);
   text-transform: uppercase;
-  margin-bottom: 0.5rem;
+  margin-bottom: var(--space-sm);
 }
 
+/* 対比：セクションタイトルを強調 */
 .section-title {
-  font-size: 1.5rem;
-  font-weight: 500;
+  font-size: var(--font-2xl);
+  font-weight: 600;
   color: var(--text-primary);
+  line-height: var(--leading-tight);
+  letter-spacing: -0.01em;
 }
 
-/* ==================== About Section ==================== */
+/* ==================== About Section (近接・可読性) ==================== */
 .about-section {
   background: linear-gradient(180deg, transparent 0%, rgba(0, 212, 255, 0.02) 50%, transparent 100%);
 }
@@ -372,7 +406,7 @@ section {
 .about-container {
   display: grid;
   grid-template-columns: 1fr 1.5fr;
-  gap: 2.5rem;
+  gap: var(--space-3xl);
   align-items: center;
   max-width: 1000px;
 }
@@ -395,45 +429,60 @@ section {
   pointer-events: none;
 }
 
-.about-content { display: flex; flex-direction: column; gap: 1.25rem; }
+/* 近接：コンテンツ要素をグループ化 */
+.about-content { 
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xl);
+}
 
-.about-text { font-size: 0.9rem; color: var(--text-secondary); line-height: 1.8; }
+/* 可読性：テキストを読みやすく */
+.about-text { 
+  font-size: var(--font-base);
+  color: var(--text-secondary);
+  line-height: var(--leading-relaxed);
+}
 
+/* 対比：引用を強調 */
 .about-quote {
-  padding: 1.25rem;
+  padding: var(--space-lg);
   background: var(--bg-card);
-  border-left: 2px solid var(--accent);
+  border-left: 3px solid var(--accent);
   border-radius: 0 8px 8px 0;
-  font-size: 0.85rem;
+  font-size: var(--font-base);
   color: var(--text-primary);
-  line-height: 1.8;
+  line-height: var(--leading-relaxed);
   font-style: italic;
 }
 
+/* 整列：統計情報を揃える */
 .about-stats {
   display: flex;
-  gap: 2.5rem;
-  padding-top: 1.25rem;
+  gap: var(--space-3xl);
+  padding-top: var(--space-lg);
   border-top: 1px solid var(--border);
 }
 
 .stat-item { text-align: center; }
 
+/* 対比：数値を目立たせる */
 .stat-number {
-  font-size: 1.5rem;
-  font-weight: 600;
+  font-size: var(--font-3xl);
+  font-weight: 700;
   background: var(--gradient-cyber);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  margin-bottom: 0.15rem;
+  margin-bottom: var(--space-xs);
+  line-height: 1;
 }
 
 .stat-label {
-  font-size: 0.65rem;
-  color: var(--text-secondary);
+  font-size: var(--font-xs);
+  color: var(--text-muted);
   letter-spacing: 0.1em;
   text-transform: uppercase;
+  font-weight: 500;
 }
 
 /* ==================== Skills Section ==================== */
@@ -664,30 +713,51 @@ footer p, footer a { font-size: 0.75rem; color: var(--text-secondary); }
 footer a { text-decoration: none; transition: color 0.3s ease; }
 footer a:hover { color: var(--accent); }
 
-/* ==================== Blog Styles ==================== */
+/* ==================== Blog Styles (近接・整列) ==================== */
 .blog-main {
-  max-width: 900px;
+  max-width: 760px; /* 可読性のため幅を狭く */
   margin: 0 auto;
-  padding: 100px 2rem 3rem;
+  padding: 100px var(--space-xl) var(--space-3xl);
   position: relative;
   z-index: 1;
 }
 
-.blog-header { margin-bottom: 2rem; text-align: center; }
-.blog-desc { color: var(--text-secondary); font-size: 0.9rem; margin-top: 0.75rem; }
+.blog-header { 
+  margin-bottom: var(--space-3xl);
+  text-align: center;
+}
+
+.blog-header .section-label {
+  margin-bottom: var(--space-sm);
+}
+
+.blog-header .section-title {
+  font-size: var(--font-3xl);
+  margin-bottom: var(--space-md);
+  line-height: var(--leading-tight);
+}
+
+.blog-desc { 
+  color: var(--text-secondary);
+  font-size: var(--font-base);
+  line-height: var(--leading-relaxed);
+  max-width: 600px;
+  margin: 0 auto;
+}
 
 .featured { margin-bottom: 2rem; }
 
+/* 近接・整列・対比を適用 */
 .post-card {
   display: block;
-  padding: 1.5rem;
+  padding: var(--space-xl);
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: 12px;
   text-decoration: none;
   color: inherit;
   transition: all 0.3s ease;
-  margin-bottom: 1rem;
+  margin-bottom: var(--space-lg);
 }
 
 .post-card:hover {
@@ -699,126 +769,213 @@ footer a:hover { color: var(--accent); }
 .post-card.featured-card {
   background: linear-gradient(135deg, var(--bg-card) 0%, rgba(0, 212, 255, 0.05) 100%);
   border-color: rgba(0, 212, 255, 0.2);
+  padding: var(--space-2xl);
 }
 
+/* 対比：Featured バッジを目立たせる */
 .post-card .badge {
   display: inline-block;
-  padding: 0.25rem 0.75rem;
+  padding: var(--space-xs) var(--space-md);
   background: var(--gradient-cyber);
   color: var(--bg-dark);
-  font-size: 0.65rem;
-  font-weight: 500;
+  font-size: var(--font-xs);
+  font-weight: 600;
+  letter-spacing: 0.05em;
   border-radius: 100px;
-  margin-bottom: 0.75rem;
+  margin-bottom: var(--space-md);
 }
 
+/* 近接：メタ情報をグループ化 */
 .post-card .meta {
   display: flex;
-  gap: 1rem;
-  margin-bottom: 0.5rem;
-  font-size: 0.75rem;
+  gap: var(--space-md);
+  margin-bottom: var(--space-md);
+  font-size: var(--font-sm);
+  letter-spacing: 0.02em;
 }
 
-.post-card .date { color: var(--text-secondary); }
-.post-card .category { color: var(--accent); }
-
-.post-card h2 {
-  font-size: 1.1rem;
-  font-weight: 500;
-  margin-bottom: 0.5rem;
-  line-height: 1.4;
-}
-
-.post-card .excerpt {
-  font-size: 0.85rem;
-  color: var(--text-secondary);
-  line-height: 1.6;
-  margin-bottom: 0.75rem;
-}
-
-.post-card .tags { display: flex; flex-wrap: wrap; gap: 0.5rem; }
-
-.tag {
-  font-size: 0.7rem;
-  color: var(--text-secondary);
-  padding: 0.25rem 0.5rem;
-  background: var(--bg-dark);
-  border-radius: 4px;
-}
-
-.posts-list { display: flex; flex-direction: column; }
-
-/* ==================== Article Styles ==================== */
-.article { max-width: 750px; margin: 0 auto; }
-
-.article-header { margin-bottom: 2rem; }
-
-.back-link {
-  display: inline-block;
+.post-card .date { color: var(--text-muted); }
+.post-card .category { 
   color: var(--accent);
-  text-decoration: none;
-  font-size: 0.85rem;
-  margin-bottom: 1.5rem;
-  transition: all 0.3s;
+  font-weight: 500;
 }
 
-.back-link:hover { opacity: 0.8; }
-
-.article-header h1 {
-  font-size: 1.75rem;
+/* 対比：タイトルを大きく見やすく */
+.post-card h2 {
+  font-size: var(--font-xl);
   font-weight: 600;
-  line-height: 1.4;
-  margin-bottom: 0.75rem;
-}
-
-.article-header .lead {
-  font-size: 1rem;
-  color: var(--text-secondary);
-  line-height: 1.7;
-  margin-bottom: 1rem;
-}
-
-.content {
-  font-size: 0.95rem;
-  line-height: 1.9;
+  margin-bottom: var(--space-md);
+  line-height: var(--leading-tight);
   color: var(--text-primary);
 }
 
-.content h1, .content h2, .content h3 {
-  margin: 2rem 0 1rem;
+.post-card.featured-card h2 {
+  font-size: var(--font-2xl);
+}
+
+/* 可読性：抜粋テキストを読みやすく */
+.post-card .excerpt {
+  font-size: var(--font-base);
+  color: var(--text-secondary);
+  line-height: var(--leading-relaxed);
+  margin-bottom: var(--space-lg);
+}
+
+/* 近接：タグをグループ化 */
+.post-card .tags { 
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+}
+
+.tag {
+  font-size: var(--font-xs);
+  color: var(--text-muted);
+  padding: var(--space-xs) var(--space-sm);
+  background: var(--bg-dark);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.tag:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+/* 整列：記事リストを統一 */
+.posts-list { 
+  display: flex;
+  flex-direction: column;
+}
+
+.featured {
+  margin-bottom: var(--space-2xl);
+}
+
+/* ==================== Article Styles (可読性最優先) ==================== */
+.article { 
+  max-width: 680px; /* より読みやすい幅 */
+  margin: 0 auto;
+}
+
+/* 近接：ヘッダー要素をグループ化 */
+.article-header { 
+  margin-bottom: var(--space-3xl);
+  padding-bottom: var(--space-xl);
+  border-bottom: 1px solid var(--border);
+}
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  color: var(--accent);
+  text-decoration: none;
+  font-size: var(--font-sm);
+  margin-bottom: var(--space-xl);
+  transition: all 0.3s;
   font-weight: 500;
 }
 
-.content h2 { font-size: 1.3rem; }
-.content h3 { font-size: 1.1rem; }
+.back-link:hover { 
+  opacity: 0.8;
+  transform: translateX(-4px);
+}
 
-.content p { margin-bottom: 1.25rem; }
+/* 近接：メタ情報をまとめる */
+.article-header .meta {
+  margin-bottom: var(--space-lg);
+}
 
-.content a { color: var(--accent); text-decoration: none; }
-.content a:hover { text-decoration: underline; }
+/* 対比：タイトルを強調 */
+.article-header h1 {
+  font-size: var(--font-3xl);
+  font-weight: 700;
+  line-height: var(--leading-tight);
+  margin-bottom: var(--space-lg);
+  letter-spacing: -0.02em;
+}
 
+/* リード文を読みやすく */
+.article-header .lead {
+  font-size: var(--font-lg);
+  color: var(--text-secondary);
+  line-height: var(--leading-relaxed);
+  margin-bottom: var(--space-lg);
+  font-weight: 400;
+}
+
+/* 可読性：本文を大きく、行間広く */
+.content {
+  font-size: var(--font-lg);
+  line-height: var(--leading-loose);
+  color: var(--text-primary);
+  font-weight: 300;
+}
+
+/* 対比：見出しの階層を明確に */
+.content h1, .content h2, .content h3 {
+  margin: var(--space-3xl) 0 var(--space-lg);
+  font-weight: 600;
+  line-height: var(--leading-tight);
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+}
+
+.content h1 { font-size: var(--font-2xl); }
+.content h2 { font-size: var(--font-xl); }
+.content h3 { font-size: var(--font-lg); font-weight: 500; }
+
+/* 近接：段落間隔を統一 */
+.content p { 
+  margin-bottom: var(--space-xl);
+}
+
+/* 対比：リンクを目立たせる */
+.content a { 
+  color: var(--accent);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: all 0.2s;
+}
+
+.content a:hover {
+  border-bottom-color: var(--accent);
+}
+
+/* コードの可読性向上 */
 .content code {
   background: var(--bg-card);
-  padding: 0.2rem 0.4rem;
+  padding: var(--space-xs) var(--space-sm);
   border-radius: 4px;
-  font-size: 0.85em;
+  font-size: 0.9em;
+  border: 1px solid var(--border);
+  font-family: 'Courier New', monospace;
 }
 
+/* 引用の強調 */
 .content blockquote {
-  margin: 1.5rem 0;
-  padding: 1rem 1.5rem;
+  margin: var(--space-2xl) 0;
+  padding: var(--space-lg) var(--space-xl);
   background: var(--bg-card);
-  border-left: 3px solid var(--accent);
+  border-left: 4px solid var(--accent);
   border-radius: 0 8px 8px 0;
   font-style: italic;
+  color: var(--text-secondary);
+  font-size: var(--font-base);
+  line-height: var(--leading-relaxed);
 }
 
+/* リストの可読性向上 */
 .content ul, .content ol {
-  margin: 1rem 0;
-  padding-left: 1.5rem;
+  margin: var(--space-xl) 0;
+  padding-left: var(--space-2xl);
 }
 
-.content li { margin-bottom: 0.5rem; }
+.content li { 
+  margin-bottom: var(--space-md);
+  line-height: var(--leading-relaxed);
+}
 
 .article-footer {
   margin-top: 3rem;
