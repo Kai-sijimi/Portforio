@@ -1,20 +1,16 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "kai-blog",
-  "main": "src/index.tsx",
   "compatibility_date": "2025-12-08",
   "pages_build_output_dir": "./dist",
   "compatibility_flags": [
     "nodejs_compat"
   ],
-  "assets": {
-    "directory": "./public"
-  },
   "d1_databases": [
     {
       "binding": "DB",
       "database_name": "kai-blog-db",
-      "database_id": "placeholder-will-be-replaced"
+      "database_id": "55020eef-7347-4e1b-bb5e-88256e0bfc45"
     }
   ]
 }
