@@ -1089,7 +1089,7 @@ app.get('/', (c) => {
                 <a href="https://innovatopia.jp/author/kai/" target="_blank" class="contact-link">innovaTopia 著者ページ</a>
             </div>
             <div class="social-links">
-                <a href="#" class="social-link" aria-label="Twitter">𝕏</a>
+                <a href="https://x.com/Kai_tech_XR" target="_blank" class="social-link" aria-label="X (Twitter)">𝕏</a>
                 <a href="#" class="social-link" aria-label="LinkedIn">in</a>
             </div>
         </div>
