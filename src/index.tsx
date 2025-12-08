@@ -333,6 +333,67 @@ app.get('/api/admin/stats', async (c) => {
   }
 })
 
+// ==================== SEO ====================
+
+// robots.txt
+app.get('/robots.txt', (c) => {
+  return c.text(`# robots.txt for kai-blog.pages.dev
+
+User-agent: *
+Allow: /
+
+# Sitemap location
+Sitemap: https://kai-blog.pages.dev/sitemap.xml
+
+# Disallow admin pages
+Disallow: /admin/
+Disallow: /api/
+`)
+})
+
+// sitemap.xml - 動的に生成
+app.get('/sitemap.xml', async (c) => {
+  try {
+    const { results } = await c.env.DB.prepare(
+      `SELECT slug, published_at FROM posts WHERE status = 'published' ORDER BY published_at DESC`
+    ).all()
+
+    const today = new Date().toISOString().split('T')[0]
+    
+    let sitemap = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://kai-blog.pages.dev/</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://kai-blog.pages.dev/blog</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>`
+
+    for (const post of results as any[]) {
+      const date = post.published_at ? post.published_at.split(' ')[0] : today
+      sitemap += `
+  <url>
+    <loc>https://kai-blog.pages.dev/blog/${post.slug}</loc>
+    <lastmod>${date}</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>`
+    }
+
+    sitemap += '\n</urlset>'
+
+    return c.text(sitemap, 200, { 'Content-Type': 'application/xml' })
+  } catch (e) {
+    return c.text('Error generating sitemap', 500)
+  }
+})
+
 // ==================== フロントエンド ====================
 
 // 静的ファイル用のHTMLを返す（SPAルーティング対応）
@@ -354,7 +415,54 @@ function getMainHTML() {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>乗杉 海 | Technology Journalist</title>
+    <title>乗杉 海 | Technology Journalist - AI・XR・半導体・宇宙技術の最新動向</title>
+    
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="乗杉海（Kai Norisugi）のポートフォリオ＆テックブログ。innovaTopiaで活動するテクノロジージャーナリストとして、AI、XR/VR/AR、半導体、宇宙技術など先端分野の最新動向を発信。">
+    <meta name="keywords" content="乗杉海,Kai Norisugi,テクノロジージャーナリスト,AI,XR,VR,AR,半導体,宇宙技術,メタバース,innovaTopia,テックライター">
+    <meta name="author" content="乗杉 海 (Kai Norisugi)">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://kai-blog.pages.dev/">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://kai-blog.pages.dev/">
+    <meta property="og:title" content="乗杉 海 | Technology Journalist">
+    <meta property="og:description" content="AI、XR、半導体、宇宙技術など先端分野の最新動向を発信するテクノロジージャーナリストのポートフォリオ＆ブログ">
+    <meta property="og:image" content="https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=1200&q=80">
+    <meta property="og:site_name" content="乗杉 海 Portfolio & Blog">
+    <meta property="og:locale" content="ja_JP">
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:site" content="@Kai_tech_XR">
+    <meta name="twitter:creator" content="@Kai_tech_XR">
+    <meta name="twitter:title" content="乗杉 海 | Technology Journalist">
+    <meta name="twitter:description" content="AI、XR、半導体、宇宙技術など先端分野の最新動向を発信するテクノロジージャーナリストのポートフォリオ＆ブログ">
+    <meta name="twitter:image" content="https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=1200&q=80">
+    
+    <!-- Structured Data / JSON-LD -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Person",
+      "name": "乗杉 海",
+      "alternateName": "Kai Norisugi",
+      "url": "https://kai-blog.pages.dev/",
+      "image": "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=800&q=80",
+      "jobTitle": "Technology Journalist",
+      "worksFor": {
+        "@type": "Organization",
+        "name": "innovaTopia"
+      },
+      "sameAs": [
+        "https://x.com/Kai_tech_XR",
+        "https://innovatopia.jp/author/kai/"
+      ],
+      "knowsAbout": ["AI", "XR", "VR", "AR", "半導体", "宇宙技術", "メタバース", "ロボティクス"]
+    }
+    </script>
+    
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Noto+Sans+JP:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/static/styles.css">
     <style>
