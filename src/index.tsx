@@ -91,18 +91,94 @@ app.get('/', (c) => {
             color: var(--text);
         }
 
+        /* ========== Hamburger Menu ========== */
+        .hamburger {
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            gap: 5px;
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+            background: none;
+            border: none;
+            padding: 0;
+        }
+
+        .hamburger span {
+            display: block;
+            width: 100%;
+            height: 1.5px;
+            background: var(--text);
+            transition: all 0.3s ease;
+        }
+
+        .hamburger.active span:nth-child(1) {
+            transform: rotate(45deg) translate(5px, 5px);
+        }
+
+        .hamburger.active span:nth-child(2) {
+            opacity: 0;
+        }
+
+        .hamburger.active span:nth-child(3) {
+            transform: rotate(-45deg) translate(5px, -5px);
+        }
+
+        /* Mobile Menu */
+        .mobile-menu {
+            display: none;
+            position: fixed;
+            top: 53px;
+            left: 0;
+            right: 0;
+            background: var(--base);
+            border-bottom: 1px solid var(--border);
+            padding: 1.5rem;
+            z-index: 99;
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+            pointer-events: none;
+        }
+
+        .mobile-menu.active {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+        }
+
+        .mobile-menu a {
+            display: block;
+            padding: 0.75rem 0;
+            color: var(--text);
+            text-decoration: none;
+            font-size: 0.9rem;
+            border-bottom: 1px solid var(--border);
+            transition: color 0.2s ease;
+        }
+
+        .mobile-menu a:last-child {
+            border-bottom: none;
+        }
+
+        .mobile-menu a:hover {
+            color: var(--accent);
+        }
+
         /* ========== Hero Section ========== */
         .hero {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            min-height: 100vh;
+            min-height: auto;
+            margin-top: 60px;
         }
 
         .hero-content {
             display: flex;
             flex-direction: column;
             justify-content: center;
-            padding: 6rem 3rem 4rem;
+            padding: 4rem 3rem;
         }
 
         .hero-label {
@@ -161,6 +237,7 @@ app.get('/', (c) => {
             background-size: cover;
             background-position: center;
             filter: grayscale(20%);
+            min-height: 400px;
         }
 
         /* ========== Section Styles ========== */
@@ -405,16 +482,24 @@ app.get('/', (c) => {
                 display: none;
             }
 
+            .hamburger {
+                display: flex;
+            }
+
+            .mobile-menu {
+                display: block;
+            }
+
             .hero {
                 grid-template-columns: 1fr;
             }
 
             .hero-content {
-                padding: 5rem 1.5rem 3rem;
+                padding: 3rem 1.5rem;
             }
 
             .hero-image {
-                height: 250px;
+                min-height: 200px;
             }
 
             section {
@@ -483,7 +568,20 @@ app.get('/', (c) => {
             <li><a href="#works">Works</a></li>
             <li><a href="#contact">Contact</a></li>
         </ul>
+        <button class="hamburger" aria-label="メニュー">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
     </nav>
+
+    <!-- Mobile Menu -->
+    <div class="mobile-menu">
+        <a href="#about">About</a>
+        <a href="#expertise">Expertise</a>
+        <a href="#works">Works</a>
+        <a href="#contact">Contact</a>
+    </div>
 
     <!-- Hero Section -->
     <section class="hero">
@@ -661,6 +759,7 @@ app.get('/', (c) => {
     </footer>
 
     <script>
+        // Scroll reveal
         const revealElements = document.querySelectorAll('.reveal');
 
         const revealOnScroll = () => {
@@ -675,6 +774,7 @@ app.get('/', (c) => {
         window.addEventListener('scroll', revealOnScroll);
         window.addEventListener('load', revealOnScroll);
 
+        // Smooth scroll
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function(e) {
                 e.preventDefault();
@@ -682,7 +782,27 @@ app.get('/', (c) => {
                 if (target) {
                     target.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 }
+                // Close mobile menu when link clicked
+                hamburger.classList.remove('active');
+                mobileMenu.classList.remove('active');
             });
+        });
+
+        // Hamburger menu
+        const hamburger = document.querySelector('.hamburger');
+        const mobileMenu = document.querySelector('.mobile-menu');
+
+        hamburger.addEventListener('click', () => {
+            hamburger.classList.toggle('active');
+            mobileMenu.classList.toggle('active');
+        });
+
+        // Close menu when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!hamburger.contains(e.target) && !mobileMenu.contains(e.target)) {
+                hamburger.classList.remove('active');
+                mobileMenu.classList.remove('active');
+            }
         });
     </script>
 </body>
