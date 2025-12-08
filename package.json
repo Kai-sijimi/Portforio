@@ -1,17 +1,24 @@
 {
-  "name": "webapp",
+  "name": "kai-blog",
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:d1": "wrangler pages dev dist --d1=DB --local --ip 0.0.0.0 --port 3000",
     "build": "vite build",
-    "preview": "wrangler pages dev",
-    "deploy": "npm run build && wrangler pages deploy",
-    "cf-typegen": "wrangler types --env-interface CloudflareBindings"
+    "preview": "wrangler pages dev dist",
+    "deploy": "npm run build && wrangler pages deploy dist --project-name kai-blog",
+    "cf-typegen": "wrangler types --env-interface CloudflareBindings",
+    "db:migrate:local": "wrangler d1 migrations apply kai-blog-db --local",
+    "db:migrate:prod": "wrangler d1 migrations apply kai-blog-db",
+    "db:seed:local": "wrangler d1 execute kai-blog-db --local --file=./seed.sql",
+    "db:seed:prod": "wrangler d1 execute kai-blog-db --file=./seed.sql",
+    "db:reset": "rm -rf .wrangler/state/v3/d1 && npm run db:migrate:local && npm run db:seed:local"
   },
   "dependencies": {
     "hono": "^4.10.7"
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "^4.20251205.0",
     "@hono/vite-build": "^1.2.0",
     "@hono/vite-dev-server": "^0.18.2",
     "vite": "^6.3.5",

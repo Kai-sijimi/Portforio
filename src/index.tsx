@@ -1,872 +1,422 @@
 import { Hono } from 'hono'
+import { cors } from 'hono/cors'
+import { setCookie, getCookie, deleteCookie } from 'hono/cookie'
 
-const app = new Hono()
+type Bindings = {
+  DB: D1Database
+}
 
-app.get('/', (c) => {
-  return c.html(`
-<!DOCTYPE html>
+type Variables = {
+  user: { id: number; username: string; display_name: string } | null
+}
+
+const app = new Hono<{ Bindings: Bindings; Variables: Variables }>()
+
+// CORS設定
+app.use('/api/*', cors({
+  origin: '*',
+  credentials: true,
+}))
+
+// セッション認証ミドルウェア
+app.use('/api/admin/*', async (c, next) => {
+  const sessionId = getCookie(c, 'session_id')
+  
+  if (!sessionId) {
+    return c.json({ error: 'Unauthorized' }, 401)
+  }
+
+  try {
+    const session = await c.env.DB.prepare(
+      `SELECT s.*, u.id as user_id, u.username, u.display_name 
+       FROM sessions s 
+       JOIN users u ON s.user_id = u.id 
+       WHERE s.id = ? AND s.expires_at > datetime('now')`
+    ).bind(sessionId).first()
+
+    if (!session) {
+      deleteCookie(c, 'session_id')
+      return c.json({ error: 'Session expired' }, 401)
+    }
+
+    c.set('user', {
+      id: session.user_id as number,
+      username: session.username as string,
+      display_name: session.display_name as string
+    })
+  } catch (e) {
+    return c.json({ error: 'Database error' }, 500)
+  }
+
+  await next()
+})
+
+// ==================== 認証API ====================
+
+// ログイン
+app.post('/api/auth/login', async (c) => {
+  try {
+    const { username, password, remember } = await c.req.json()
+
+    if (!username || !password) {
+      return c.json({ error: 'Username and password required' }, 400)
+    }
+
+    const user = await c.env.DB.prepare(
+      'SELECT * FROM users WHERE username = ?'
+    ).bind(username).first()
+
+    if (!user || user.password_hash !== password) {
+      return c.json({ error: 'Invalid credentials' }, 401)
+    }
+
+    // セッション作成
+    const sessionId = crypto.randomUUID()
+    const expiresAt = new Date()
+    expiresAt.setDate(expiresAt.getDate() + (remember ? 30 : 1)) // 30日 or 1日
+
+    await c.env.DB.prepare(
+      'INSERT INTO sessions (id, user_id, expires_at) VALUES (?, ?, ?)'
+    ).bind(sessionId, user.id, expiresAt.toISOString()).run()
+
+    // Cookie設定
+    setCookie(c, 'session_id', sessionId, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'Lax',
+      path: '/',
+      maxAge: remember ? 30 * 24 * 60 * 60 : 24 * 60 * 60
+    })
+
+    return c.json({
+      success: true,
+      user: {
+        id: user.id,
+        username: user.username,
+        display_name: user.display_name
+      }
+    })
+  } catch (e) {
+    console.error('Login error:', e)
+    return c.json({ error: 'Login failed' }, 500)
+  }
+})
+
+// ログアウト
+app.post('/api/auth/logout', async (c) => {
+  const sessionId = getCookie(c, 'session_id')
+  
+  if (sessionId) {
+    await c.env.DB.prepare('DELETE FROM sessions WHERE id = ?').bind(sessionId).run()
+    deleteCookie(c, 'session_id')
+  }
+
+  return c.json({ success: true })
+})
+
+// セッション確認
+app.get('/api/auth/me', async (c) => {
+  const sessionId = getCookie(c, 'session_id')
+  
+  if (!sessionId) {
+    return c.json({ authenticated: false })
+  }
+
+  try {
+    const session = await c.env.DB.prepare(
+      `SELECT u.id, u.username, u.display_name 
+       FROM sessions s 
+       JOIN users u ON s.user_id = u.id 
+       WHERE s.id = ? AND s.expires_at > datetime('now')`
+    ).bind(sessionId).first()
+
+    if (!session) {
+      deleteCookie(c, 'session_id')
+      return c.json({ authenticated: false })
+    }
+
+    return c.json({
+      authenticated: true,
+      user: {
+        id: session.id,
+        username: session.username,
+        display_name: session.display_name
+      }
+    })
+  } catch (e) {
+    return c.json({ authenticated: false })
+  }
+})
+
+// ==================== 公開ブログAPI ====================
+
+// 公開記事一覧取得
+app.get('/api/posts', async (c) => {
+  try {
+    const { results } = await c.env.DB.prepare(
+      `SELECT id, slug, title, excerpt, category, tags, featured, published_at 
+       FROM posts 
+       WHERE status = 'published' 
+       ORDER BY featured DESC, published_at DESC`
+    ).all()
+
+    return c.json({ posts: results })
+  } catch (e) {
+    console.error('Fetch posts error:', e)
+    return c.json({ error: 'Failed to fetch posts' }, 500)
+  }
+})
+
+// 公開記事詳細取得
+app.get('/api/posts/:slug', async (c) => {
+  const slug = c.req.param('slug')
+
+  try {
+    const post = await c.env.DB.prepare(
+      `SELECT p.*, u.display_name as author_name 
+       FROM posts p 
+       JOIN users u ON p.author_id = u.id 
+       WHERE p.slug = ? AND p.status = 'published'`
+    ).bind(slug).first()
+
+    if (!post) {
+      return c.json({ error: 'Post not found' }, 404)
+    }
+
+    return c.json({ post })
+  } catch (e) {
+    return c.json({ error: 'Failed to fetch post' }, 500)
+  }
+})
+
+// ==================== 管理者用API ====================
+
+// 全記事一覧（下書き含む）
+app.get('/api/admin/posts', async (c) => {
+  try {
+    const { results } = await c.env.DB.prepare(
+      `SELECT id, slug, title, excerpt, category, tags, status, featured, published_at, created_at, updated_at 
+       FROM posts 
+       ORDER BY updated_at DESC`
+    ).all()
+
+    return c.json({ posts: results })
+  } catch (e) {
+    return c.json({ error: 'Failed to fetch posts' }, 500)
+  }
+})
+
+// 記事詳細取得（編集用）
+app.get('/api/admin/posts/:id', async (c) => {
+  const id = c.req.param('id')
+
+  try {
+    const post = await c.env.DB.prepare(
+      'SELECT * FROM posts WHERE id = ?'
+    ).bind(id).first()
+
+    if (!post) {
+      return c.json({ error: 'Post not found' }, 404)
+    }
+
+    return c.json({ post })
+  } catch (e) {
+    return c.json({ error: 'Failed to fetch post' }, 500)
+  }
+})
+
+// 記事作成
+app.post('/api/admin/posts', async (c) => {
+  const user = c.get('user')
+  if (!user) return c.json({ error: 'Unauthorized' }, 401)
+
+  try {
+    const { title, slug, content, excerpt, category, tags, status, featured } = await c.req.json()
+
+    if (!title || !slug || !content) {
+      return c.json({ error: 'Title, slug, and content are required' }, 400)
+    }
+
+    const publishedAt = status === 'published' ? new Date().toISOString() : null
+
+    const result = await c.env.DB.prepare(
+      `INSERT INTO posts (slug, title, content, excerpt, category, tags, status, featured, author_id, published_at) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+    ).bind(slug, title, content, excerpt || '', category || 'テック考察', tags || '', status || 'draft', featured ? 1 : 0, user.id, publishedAt).run()
+
+    return c.json({ 
+      success: true, 
+      id: result.meta.last_row_id,
+      message: 'Post created successfully'
+    })
+  } catch (e: any) {
+    if (e.message?.includes('UNIQUE constraint failed')) {
+      return c.json({ error: 'Slug already exists' }, 400)
+    }
+    console.error('Create post error:', e)
+    return c.json({ error: 'Failed to create post' }, 500)
+  }
+})
+
+// 記事更新
+app.put('/api/admin/posts/:id', async (c) => {
+  const id = c.req.param('id')
+
+  try {
+    const { title, slug, content, excerpt, category, tags, status, featured } = await c.req.json()
+
+    // 現在の記事を取得
+    const existingPost = await c.env.DB.prepare(
+      'SELECT * FROM posts WHERE id = ?'
+    ).bind(id).first()
+
+    if (!existingPost) {
+      return c.json({ error: 'Post not found' }, 404)
+    }
+
+    // 公開日時の設定
+    let publishedAt = existingPost.published_at
+    if (status === 'published' && !existingPost.published_at) {
+      publishedAt = new Date().toISOString()
+    }
+
+    await c.env.DB.prepare(
+      `UPDATE posts SET 
+        title = ?, slug = ?, content = ?, excerpt = ?, 
+        category = ?, tags = ?, status = ?, featured = ?,
+        published_at = ?, updated_at = datetime('now')
+       WHERE id = ?`
+    ).bind(
+      title, slug, content, excerpt || '', 
+      category || 'テック考察', tags || '', status || 'draft', featured ? 1 : 0,
+      publishedAt, id
+    ).run()
+
+    return c.json({ success: true, message: 'Post updated successfully' })
+  } catch (e: any) {
+    if (e.message?.includes('UNIQUE constraint failed')) {
+      return c.json({ error: 'Slug already exists' }, 400)
+    }
+    return c.json({ error: 'Failed to update post' }, 500)
+  }
+})
+
+// 記事削除
+app.delete('/api/admin/posts/:id', async (c) => {
+  const id = c.req.param('id')
+
+  try {
+    await c.env.DB.prepare('DELETE FROM posts WHERE id = ?').bind(id).run()
+    return c.json({ success: true, message: 'Post deleted successfully' })
+  } catch (e) {
+    return c.json({ error: 'Failed to delete post' }, 500)
+  }
+})
+
+// 統計情報
+app.get('/api/admin/stats', async (c) => {
+  try {
+    const published = await c.env.DB.prepare(
+      "SELECT COUNT(*) as count FROM posts WHERE status = 'published'"
+    ).first()
+    
+    const drafts = await c.env.DB.prepare(
+      "SELECT COUNT(*) as count FROM posts WHERE status = 'draft'"
+    ).first()
+
+    return c.json({
+      published: published?.count || 0,
+      drafts: drafts?.count || 0
+    })
+  } catch (e) {
+    return c.json({ error: 'Failed to fetch stats' }, 500)
+  }
+})
+
+// ==================== フロントエンド ====================
+
+// 静的ファイル用のHTMLを返す（SPAルーティング対応）
+app.get('*', async (c) => {
+  const path = c.req.path
+  
+  // APIパスは除外
+  if (path.startsWith('/api/')) {
+    return c.json({ error: 'Not found' }, 404)
+  }
+
+  // メインHTML
+  return c.html(getMainHTML())
+})
+
+function getMainHTML() {
+  return `<!DOCTYPE html>
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>乗杉 海 | Technology Journalist</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Noto+Sans+JP:wght@300;400;500&display=swap" rel="stylesheet">
+    <title>乗杉 海 Blog</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Noto+Sans+JP:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/styles.css">
     <style>
         :root {
-            --base: #FFFFFF;
-            --text: #1A1A1A;
-            --accent: #6B7280;
-            --border: #E5E7EB;
+            --bg-dark: #0a0a0f;
+            --bg-card: #12121a;
+            --text-primary: #ffffff;
+            --text-secondary: #8a8a9a;
+            --accent: #00d4ff;
+            --accent-dim: rgba(0, 212, 255, 0.15);
+            --border: rgba(255, 255, 255, 0.08);
+            --gradient-cyber: linear-gradient(135deg, #00d4ff 0%, #7b2cbf 100%);
+            --error: #ff4757;
+            --success: #2ed573;
         }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        html {
-            scroll-behavior: smooth;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Inter', 'Noto Sans JP', sans-serif;
-            background-color: var(--base);
-            color: var(--text);
+            background-color: var(--bg-dark);
+            color: var(--text-primary);
             line-height: 1.7;
-            font-weight: 300;
         }
-
-        /* ========== Animations ========== */
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(16px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .fade-in {
-            opacity: 0;
-            animation: fadeIn 0.6s ease-out forwards;
-        }
-
-        .delay-1 { animation-delay: 0.15s; }
-        .delay-2 { animation-delay: 0.3s; }
-
-        /* ========== Navigation ========== */
-        nav {
+        .cyber-grid {
             position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            z-index: 100;
-            padding: 1rem 3rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(8px);
-            border-bottom: 1px solid var(--border);
-        }
-
-        .logo {
-            font-size: 0.9rem;
-            font-weight: 400;
-            color: var(--text);
-            text-decoration: none;
-        }
-
-        .nav-links {
-            display: flex;
-            gap: 2rem;
-            list-style: none;
-        }
-
-        .nav-links a {
-            color: var(--accent);
-            text-decoration: none;
-            font-size: 0.8rem;
-            transition: color 0.2s ease;
-        }
-
-        .nav-links a:hover {
-            color: var(--text);
-        }
-
-        /* ========== Hamburger Menu ========== */
-        .hamburger {
-            display: none;
-            flex-direction: column;
-            justify-content: center;
-            gap: 5px;
-            width: 24px;
-            height: 24px;
-            cursor: pointer;
-            background: none;
-            border: none;
-            padding: 0;
-        }
-
-        .hamburger span {
-            display: block;
-            width: 100%;
-            height: 1.5px;
-            background: var(--text);
-            transition: all 0.3s ease;
-        }
-
-        .hamburger.active span:nth-child(1) {
-            transform: rotate(45deg) translate(5px, 5px);
-        }
-
-        .hamburger.active span:nth-child(2) {
-            opacity: 0;
-        }
-
-        .hamburger.active span:nth-child(3) {
-            transform: rotate(-45deg) translate(5px, -5px);
-        }
-
-        /* Mobile Menu */
-        .mobile-menu {
-            display: none;
-            position: fixed;
-            top: 53px;
-            left: 0;
-            right: 0;
-            background: var(--base);
-            border-bottom: 1px solid var(--border);
-            padding: 1.5rem;
-            z-index: 99;
-            opacity: 0;
-            transform: translateY(-10px);
-            transition: all 0.3s ease;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-image: 
+                linear-gradient(rgba(0, 212, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 212, 255, 0.03) 1px, transparent 1px);
+            background-size: 60px 60px;
             pointer-events: none;
+            z-index: 0;
         }
-
-        .mobile-menu.active {
-            opacity: 1;
-            transform: translateY(0);
-            pointer-events: auto;
-        }
-
-        .mobile-menu a {
-            display: block;
-            padding: 0.75rem 0;
-            color: var(--text);
-            text-decoration: none;
-            font-size: 0.9rem;
-            border-bottom: 1px solid var(--border);
-            transition: color 0.2s ease;
-        }
-
-        .mobile-menu a:last-child {
-            border-bottom: none;
-        }
-
-        .mobile-menu a:hover {
-            color: var(--accent);
-        }
-
-        /* ========== Hero Section ========== */
-        .hero {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            min-height: auto;
-            margin-top: 60px;
-        }
-
-        .hero-content {
+        #app { position: relative; z-index: 1; min-height: 100vh; }
+        .loading {
             display: flex;
-            flex-direction: column;
+            align-items: center;
             justify-content: center;
-            padding: 3rem;
+            min-height: 100vh;
+            font-size: 1rem;
+            color: var(--text-secondary);
         }
-
-        .hero-label {
-            font-size: 0.7rem;
-            font-weight: 400;
-            letter-spacing: 0.15em;
-            color: var(--accent);
-            margin-bottom: 1rem;
-            text-transform: uppercase;
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
         }
-
-        .hero-title {
-            font-size: 2rem;
-            font-weight: 400;
-            letter-spacing: -0.01em;
-            line-height: 1.3;
-            margin-bottom: 0.25rem;
-        }
-
-        .hero-subtitle {
-            font-size: 0.9rem;
-            font-weight: 300;
-            color: var(--accent);
-            margin-bottom: 1.5rem;
-        }
-
-        .hero-description {
-            font-size: 0.9rem;
-            color: var(--accent);
-            line-height: 1.9;
-            margin-bottom: 2rem;
-            max-width: 400px;
-        }
-
-        .hero-links {
-            display: flex;
-            gap: 1.5rem;
-        }
-
-        .hero-link {
-            font-size: 0.8rem;
-            color: var(--text);
-            text-decoration: none;
-            padding-bottom: 2px;
-            border-bottom: 1px solid var(--text);
-            transition: all 0.2s ease;
-        }
-
-        .hero-link:hover {
-            color: var(--accent);
-            border-color: var(--accent);
-        }
-
-        .hero-image {
-            background-image: url('https://images.unsplash.com/photo-1497366216548-37526070297c?w=1200&q=80');
-            background-size: cover;
-            background-position: center;
-            filter: grayscale(20%);
-            min-height: 400px;
-        }
-
-        /* ========== Section Styles ========== */
-        section {
-            padding: 3rem;
-        }
-
-        .section-label {
-            font-size: 0.65rem;
-            font-weight: 400;
-            letter-spacing: 0.15em;
-            color: var(--accent);
-            text-transform: uppercase;
-            margin-bottom: 0.5rem;
-        }
-
-        .section-title {
-            font-size: 1.25rem;
-            font-weight: 400;
-            margin-bottom: 1.5rem;
-        }
-
-        /* ========== About Section ========== */
-        .about-section {
-            background: #FAFAFA;
-        }
-
-        .about-wrapper {
-            max-width: 800px;
-        }
-
-        .about-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 2rem;
-        }
-
-        .about-text {
-            font-size: 0.9rem;
-            color: var(--accent);
-            line-height: 1.9;
-        }
-
-        .about-quote {
-            padding-left: 1.5rem;
-            border-left: 2px solid var(--border);
-            font-size: 0.9rem;
-            color: var(--text);
-            line-height: 1.8;
-        }
-
-        .about-stats {
-            display: flex;
-            gap: 3rem;
-            margin-top: 1.5rem;
-            padding-top: 1.5rem;
-            border-top: 1px solid var(--border);
-        }
-
-        .stat-number {
-            font-size: 1.25rem;
-            font-weight: 400;
-            margin-bottom: 0.25rem;
-        }
-
-        .stat-label {
-            font-size: 0.65rem;
-            color: var(--accent);
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
-        }
-
-        /* ========== Skills Section ========== */
-        .skills-section {
-            border-bottom: 1px solid var(--border);
-        }
-
-        .skills-grid {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-            max-width: 800px;
-        }
-
-        .skill-tag {
-            font-size: 0.7rem;
-            color: var(--accent);
-            padding: 0.4rem 0.8rem;
-            border: 1px solid var(--border);
-            border-radius: 2px;
-            transition: all 0.2s ease;
-        }
-
-        .skill-tag:hover {
-            color: var(--text);
-            border-color: var(--accent);
-        }
-
-        /* ========== Expertise Section ========== */
-        .expertise-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 1px;
-            background: var(--border);
-            max-width: 1000px;
-        }
-
-        .expertise-item {
-            background: var(--base);
-            padding: 1.5rem;
-        }
-
-        .expertise-title {
-            font-size: 0.85rem;
-            font-weight: 400;
-            margin-bottom: 0.5rem;
-        }
-
-        .expertise-desc {
-            font-size: 0.75rem;
-            color: var(--accent);
-            line-height: 1.7;
-        }
-
-        /* ========== Works Section ========== */
-        .works-section {
-            background: #FAFAFA;
-        }
-
-        .works-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-end;
-            margin-bottom: 1.5rem;
-        }
-
-        .works-header .section-title {
-            margin-bottom: 0;
-        }
-
-        .works-more {
-            font-size: 0.75rem;
-            color: var(--accent);
-            text-decoration: none;
-            transition: color 0.2s ease;
-        }
-
-        .works-more:hover {
-            color: var(--text);
-        }
-
-        .works-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 1px;
-            background: var(--border);
-            max-width: 900px;
-        }
-
-        .work-item {
-            background: #FAFAFA;
-            padding: 1.5rem;
-            text-decoration: none;
-            color: inherit;
-            transition: background 0.2s ease;
-        }
-
-        .work-item:hover {
-            background: var(--base);
-        }
-
-        .work-meta {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 0.5rem;
-        }
-
-        .work-category {
-            font-size: 0.65rem;
-            color: var(--accent);
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
-        }
-
-        .work-date {
-            font-size: 0.65rem;
-            color: var(--accent);
-        }
-
-        .work-title {
-            font-size: 0.85rem;
-            font-weight: 400;
-            line-height: 1.6;
-        }
-
-        /* ========== Contact Section ========== */
-        .contact-wrapper {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 3rem;
-            max-width: 800px;
-        }
-
-        .contact-text {
-            font-size: 0.9rem;
-            color: var(--accent);
-            line-height: 1.8;
-        }
-
-        .contact-links {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-
-        .contact-link {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            font-size: 0.85rem;
-            color: var(--text);
-            text-decoration: none;
-            transition: color 0.2s ease;
-        }
-
-        .contact-link:hover {
-            color: var(--accent);
-        }
-
-        .contact-link span {
-            font-size: 0.65rem;
-            color: var(--accent);
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
-            width: 2.5rem;
-        }
-
-        /* ========== Footer ========== */
-        footer {
-            padding: 1.5rem 3rem;
-            border-top: 1px solid var(--border);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        footer p, footer a {
-            font-size: 0.7rem;
-            color: var(--accent);
-        }
-
-        footer a {
-            text-decoration: none;
-            transition: color 0.2s ease;
-        }
-
-        footer a:hover {
-            color: var(--text);
-        }
-
-        /* ========== Responsive ========== */
-        @media (max-width: 900px) {
-            nav {
-                padding: 1rem 1.5rem;
-            }
-
-            .nav-links {
-                display: none;
-            }
-
-            .hamburger {
-                display: flex;
-            }
-
-            .mobile-menu {
-                display: block;
-            }
-
-            .hero {
-                grid-template-columns: 1fr;
-            }
-
-            .hero-content {
-                padding: 2rem 1.5rem;
-            }
-
-            .hero-image {
-                min-height: 180px;
-            }
-
-            section {
-                padding: 2rem 1.5rem;
-            }
-
-            .about-grid {
-                grid-template-columns: 1fr;
-                gap: 1.5rem;
-            }
-
-            .about-stats {
-                gap: 2rem;
-            }
-
-            .expertise-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-
-            .works-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .contact-wrapper {
-                grid-template-columns: 1fr;
-                gap: 1.5rem;
-            }
-
-            footer {
-                padding: 1.5rem;
-                flex-direction: column;
-                gap: 0.5rem;
-            }
-        }
-
-        @media (max-width: 600px) {
-            .expertise-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .about-stats {
-                flex-wrap: wrap;
-            }
-        }
-
-        /* ========== Scroll Animation ========== */
-        .reveal {
-            opacity: 0;
-            transform: translateY(20px);
-            transition: all 0.5s ease;
-        }
-
-        .reveal.active {
-            opacity: 1;
-            transform: translateY(0);
-        }
+        @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
-    <!-- Navigation -->
-    <nav>
-        <a href="#" class="logo">乗杉 海</a>
-        <ul class="nav-links">
-            <li><a href="#about">About</a></li>
-            <li><a href="#expertise">Expertise</a></li>
-            <li><a href="#works">Works</a></li>
-            <li><a href="#contact">Contact</a></li>
-        </ul>
-        <button class="hamburger" aria-label="メニュー">
-            <span></span>
-            <span></span>
-            <span></span>
-        </button>
-    </nav>
-
-    <!-- Mobile Menu -->
-    <div class="mobile-menu">
-        <a href="#about">About</a>
-        <a href="#expertise">Expertise</a>
-        <a href="#works">Works</a>
-        <a href="#contact">Contact</a>
+    <div class="cyber-grid"></div>
+    <div id="app">
+        <div class="loading">
+            <div class="spinner"></div>
+        </div>
     </div>
-
-    <!-- Hero Section -->
-    <section class="hero">
-        <div class="hero-content">
-            <p class="hero-label fade-in">Technology Journalist @ innovaTopia</p>
-            <h1 class="hero-title fade-in delay-1">乗杉 海</h1>
-            <p class="hero-subtitle fade-in delay-1">Kai Norisugi</p>
-            <p class="hero-description fade-in delay-2">
-                SF小説やゲームカルチャーをきっかけに、エンターテインメントとテクノロジーが交わる領域を探究。AI、XR、半導体、宇宙技術など先端分野の最新動向を発信しています。
-            </p>
-            <div class="hero-links fade-in delay-2">
-                <a href="https://innovatopia.jp/author/kai/" target="_blank" class="hero-link">記事を読む</a>
-                <a href="https://x.com/Kai_tech_XR" target="_blank" class="hero-link">X / Twitter</a>
-            </div>
-        </div>
-        <div class="hero-image"></div>
-    </section>
-
-    <!-- About Section -->
-    <section id="about" class="about-section">
-        <div class="about-wrapper reveal">
-            <p class="section-label">About</p>
-            <h2 class="section-title">テクノロジーの未来を伝える</h2>
-            <div class="about-grid">
-                <div>
-                    <p class="about-text">
-                        innovaTopiaで活動するテクノロジーライターとして、AI、XR、半導体、宇宙技術など先端分野の最新動向を発信。Apple、Google、Meta、NVIDIAなど大手IT企業の動向から、スタートアップの革新的技術まで幅広くカバーしています。
-                    </p>
-                </div>
-                <div>
-                    <blockquote class="about-quote">
-                        今起きている技術革新が、SF作品で描かれた未来とどう重なるのか。その視点から、複雑な技術を分かりやすく伝えることを心がけています。
-                    </blockquote>
-                </div>
-            </div>
-            <div class="about-stats">
-                <div>
-                    <div class="stat-number">500+</div>
-                    <div class="stat-label">Articles</div>
-                </div>
-                <div>
-                    <div class="stat-number">8</div>
-                    <div class="stat-label">Tech Fields</div>
-                </div>
-                <div>
-                    <div class="stat-number">2024</div>
-                    <div class="stat-label">Active</div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Skills Section -->
-    <section class="skills-section">
-        <div class="reveal">
-            <p class="section-label">Skills</p>
-            <h2 class="section-title">スキルスタック</h2>
-            <div class="skills-grid">
-                <span class="skill-tag">Python</span>
-                <span class="skill-tag">HTML</span>
-                <span class="skill-tag">CSS</span>
-                <span class="skill-tag">ChatGPT</span>
-                <span class="skill-tag">Claude</span>
-                <span class="skill-tag">Gemini</span>
-                <span class="skill-tag">Midjourney</span>
-                <span class="skill-tag">Stable Diffusion</span>
-                <span class="skill-tag">Unity</span>
-                <span class="skill-tag">Unreal Engine</span>
-                <span class="skill-tag">Blender</span>
-                <span class="skill-tag">Figma</span>
-                <span class="skill-tag">Notion</span>
-                <span class="skill-tag">WordPress</span>
-                <span class="skill-tag">Google Analytics</span>
-                <span class="skill-tag">SEO</span>
-                <span class="skill-tag">SNS運用</span>
-                <span class="skill-tag">取材・インタビュー</span>
-                <span class="skill-tag">記事執筆</span>
-                <span class="skill-tag">編集</span>
-                <span class="skill-tag">リサーチ</span>
-                <span class="skill-tag">英語文献読解</span>
-                <span class="skill-tag">英語スピーキング</span>
-            </div>
-        </div>
-    </section>
-
-    <!-- Expertise Section -->
-    <section id="expertise">
-        <p class="section-label reveal">Expertise</p>
-        <h2 class="section-title reveal">専門分野</h2>
-        <div class="expertise-grid reveal">
-            <div class="expertise-item">
-                <h3 class="expertise-title">AI / 人工知能</h3>
-                <p class="expertise-desc">生成AI、LLM、AIエージェントの最新動向</p>
-            </div>
-            <div class="expertise-item">
-                <h3 class="expertise-title">XR / VR / AR</h3>
-                <p class="expertise-desc">Vision Pro、Quest など空間コンピューティング</p>
-            </div>
-            <div class="expertise-item">
-                <h3 class="expertise-title">半導体技術</h3>
-                <p class="expertise-desc">Apple M、NVIDIA GPU などチップ開発</p>
-            </div>
-            <div class="expertise-item">
-                <h3 class="expertise-title">宇宙技術</h3>
-                <p class="expertise-desc">惑星防衛、宇宙探査ミッションの最新科学</p>
-            </div>
-            <div class="expertise-item">
-                <h3 class="expertise-title">ゲーム / エンタメ</h3>
-                <p class="expertise-desc">Unreal Engine、ゲームAI開発</p>
-            </div>
-            <div class="expertise-item">
-                <h3 class="expertise-title">ロボティクス</h3>
-                <p class="expertise-desc">外骨格、産業用ロボット、自律システム</p>
-            </div>
-            <div class="expertise-item">
-                <h3 class="expertise-title">セキュリティ</h3>
-                <p class="expertise-desc">ランサムウェア、フォレンジック技術</p>
-            </div>
-            <div class="expertise-item">
-                <h3 class="expertise-title">ヘルスケア</h3>
-                <p class="expertise-desc">AIとメンタルヘルス、VR療法</p>
-            </div>
-        </div>
-    </section>
-
-    <!-- Works Section -->
-    <section id="works" class="works-section">
-        <div class="works-header reveal">
-            <div>
-                <p class="section-label">Works</p>
-                <h2 class="section-title">注目の記事</h2>
-            </div>
-            <a href="https://innovatopia.jp/author/kai/" target="_blank" class="works-more">すべて見る →</a>
-        </div>
-        <div class="works-grid reveal">
-            <a href="https://innovatopia.jp/vrar/vrar-news/73306/" target="_blank" class="work-item">
-                <div class="work-meta">
-                    <span class="work-category">XR / 取材</span>
-                    <span class="work-date">2025.12.03</span>
-                </div>
-                <h3 class="work-title">XREAL、ARグラス単体で2D→3D変換を実現する「XREAL 1S」を発表</h3>
-            </a>
-            <a href="https://innovatopia.jp/vrar/vrar-news/72052/" target="_blank" class="work-item">
-                <div class="work-meta">
-                    <span class="work-category">AI × XR</span>
-                    <span class="work-date">2025.11.21</span>
-                </div>
-                <h3 class="work-title">カラダが消える日——AIとXRが解体する「現実」の定義</h3>
-            </a>
-            <a href="https://innovatopia.jp/spacetechnology/spacetechnology-news/72875/" target="_blank" class="work-item">
-                <div class="work-meta">
-                    <span class="work-category">宇宙技術</span>
-                    <span class="work-date">2025.11.27</span>
-                </div>
-                <h3 class="work-title">ハーバード大ローブ博士はなぜ、3I/ATLASを『母船』と呼び続けるのか</h3>
-            </a>
-            <a href="https://innovatopia.jp/ai/ai-news/71738/" target="_blank" class="work-item">
-                <div class="work-meta">
-                    <span class="work-category">AI</span>
-                    <span class="work-date">2025.11.14</span>
-                </div>
-                <h3 class="work-title">Google DeepMind「SIMA 2」、Geminiを活用した仮想世界AIエージェント</h3>
-            </a>
-            <a href="https://innovatopia.jp/vrar/vrar-news/68902/" target="_blank" class="work-item">
-                <div class="work-meta">
-                    <span class="work-category">XR / 分析</span>
-                    <span class="work-date">2025.10.17</span>
-                </div>
-                <h3 class="work-title">Apple Vision Pro、空間コンピューティングは６畳で成立するか？</h3>
-            </a>
-            <a href="https://innovatopia.jp/ai/ai-news/71098/" target="_blank" class="work-item">
-                <div class="work-meta">
-                    <span class="work-category">ゲーム AI</span>
-                    <span class="work-date">2025.11.07</span>
-                </div>
-                <h3 class="work-title">Cygamesと東京藝術大学、ゲームAI開発ツール共同研究を開始</h3>
-            </a>
-        </div>
-    </section>
-
-    <!-- Contact Section -->
-    <section id="contact">
-        <div class="contact-wrapper reveal">
-            <div>
-                <p class="section-label">Contact</p>
-                <h2 class="section-title">お問い合わせ</h2>
-                <p class="contact-text">
-                    取材依頼、コラボレーション、その他のお問い合わせはお気軽にどうぞ。
-                </p>
-            </div>
-            <div class="contact-links">
-                <a href="https://x.com/Kai_tech_XR" target="_blank" class="contact-link">
-                    <span>X</span>
-                    @Kai_tech_XR
-                </a>
-                <a href="https://innovatopia.jp/author/kai/" target="_blank" class="contact-link">
-                    <span>Web</span>
-                    innovaTopia 著者ページ
-                </a>
-            </div>
-        </div>
-    </section>
-
-    <!-- Footer -->
-    <footer>
-        <p>© 2025 乗杉 海</p>
-        <a href="https://innovatopia.jp/" target="_blank">innovaTopia</a>
-    </footer>
-
-    <script>
-        // Scroll reveal
-        const revealElements = document.querySelectorAll('.reveal');
-
-        const revealOnScroll = () => {
-            revealElements.forEach(element => {
-                const elementTop = element.getBoundingClientRect().top;
-                if (elementTop < window.innerHeight - 60) {
-                    element.classList.add('active');
-                }
-            });
-        };
-
-        window.addEventListener('scroll', revealOnScroll);
-        window.addEventListener('load', revealOnScroll);
-
-        // Smooth scroll
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function(e) {
-                e.preventDefault();
-                const target = document.querySelector(this.getAttribute('href'));
-                if (target) {
-                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }
-                // Close mobile menu when link clicked
-                hamburger.classList.remove('active');
-                mobileMenu.classList.remove('active');
-            });
-        });
-
-        // Hamburger menu
-        const hamburger = document.querySelector('.hamburger');
-        const mobileMenu = document.querySelector('.mobile-menu');
-
-        hamburger.addEventListener('click', () => {
-            hamburger.classList.toggle('active');
-            mobileMenu.classList.toggle('active');
-        });
-
-        // Close menu when clicking outside
-        document.addEventListener('click', (e) => {
-            if (!hamburger.contains(e.target) && !mobileMenu.contains(e.target)) {
-                hamburger.classList.remove('active');
-                mobileMenu.classList.remove('active');
-            }
-        });
-    </script>
+    <script type="module" src="/static/app.js"></script>
 </body>
-</html>
-  `)
-})
+</html>`
+}
 
 export default app
