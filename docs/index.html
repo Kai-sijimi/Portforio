@@ -92,6 +92,11 @@
             50% { border-color: rgba(0, 212, 255, 0.6); }
         }
 
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
         .fade-in {
             opacity: 0;
             animation: fadeIn 0.8s ease-out forwards;
@@ -240,15 +245,17 @@
         /* ========== Hero Section ========== */
         .hero {
             min-height: 100vh;
-            display: flex;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
             align-items: center;
+            gap: 4rem;
             padding: 120px 3rem 60px;
             position: relative;
             z-index: 1;
         }
 
         .hero-content {
-            max-width: 700px;
+            max-width: 600px;
         }
 
         .hero-badge {
@@ -299,7 +306,6 @@
             color: var(--text-secondary);
             line-height: 1.9;
             margin-bottom: 2.5rem;
-            max-width: 500px;
         }
 
         .hero-links {
@@ -340,6 +346,57 @@
             color: var(--accent);
         }
 
+        /* Hero Image */
+        .hero-visual {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .hero-image-wrapper {
+            position: relative;
+            width: 100%;
+            max-width: 450px;
+            aspect-ratio: 1;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .hero-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            filter: saturate(0.8);
+        }
+
+        .hero-image-glow {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80%;
+            height: 80%;
+            background: var(--gradient-cyber);
+            filter: blur(80px);
+            opacity: 0.3;
+            z-index: -1;
+            border-radius: 50%;
+        }
+
+        .hero-image-border {
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            border-radius: 22px;
+            background: var(--gradient-cyber);
+            z-index: -1;
+            opacity: 0.5;
+        }
+
         /* ========== Section Styles ========== */
         section {
             padding: 5rem 3rem;
@@ -372,11 +429,42 @@
             background: linear-gradient(180deg, transparent 0%, rgba(0, 212, 255, 0.02) 50%, transparent 100%);
         }
 
-        .about-grid {
+        .about-container {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 3rem;
-            max-width: 900px;
+            grid-template-columns: 1fr 1.2fr;
+            gap: 4rem;
+            align-items: center;
+            max-width: 1100px;
+        }
+
+        .about-image-wrapper {
+            position: relative;
+        }
+
+        .about-image {
+            width: 100%;
+            height: 400px;
+            object-fit: cover;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            filter: saturate(0.7) brightness(0.9);
+        }
+
+        .about-image-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.1) 0%, rgba(123, 44, 191, 0.1) 100%);
+            border-radius: 16px;
+            pointer-events: none;
+        }
+
+        .about-content {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
         }
 
         .about-text {
@@ -399,8 +487,7 @@
         .about-stats {
             display: flex;
             gap: 3rem;
-            margin-top: 2.5rem;
-            padding-top: 2.5rem;
+            padding-top: 2rem;
             border-top: 1px solid var(--border);
         }
 
@@ -535,15 +622,70 @@
             gap: 0.75rem;
         }
 
-        .works-grid {
+        .works-container {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 1.5rem;
-            max-width: 1000px;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            max-width: 1100px;
+        }
+
+        .works-image-wrapper {
+            position: relative;
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        .works-image {
+            width: 100%;
+            height: 100%;
+            min-height: 400px;
+            object-fit: cover;
+            filter: saturate(0.6) brightness(0.7);
+            transition: all 0.5s ease;
+        }
+
+        .works-image-wrapper:hover .works-image {
+            filter: saturate(0.8) brightness(0.8);
+            transform: scale(1.05);
+        }
+
+        .works-image-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(180deg, transparent 0%, rgba(10, 10, 15, 0.9) 100%);
+            pointer-events: none;
+        }
+
+        .works-image-text {
+            position: absolute;
+            bottom: 2rem;
+            left: 2rem;
+            right: 2rem;
+            color: var(--text-primary);
+        }
+
+        .works-image-text h3 {
+            font-size: 1.25rem;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+
+        .works-image-text p {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .works-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
         }
 
         .work-item {
-            padding: 1.75rem;
+            padding: 1.5rem;
             background: var(--bg-card);
             border: 1px solid var(--border);
             border-radius: 12px;
@@ -555,7 +697,7 @@
 
         .work-item:hover {
             border-color: rgba(0, 212, 255, 0.3);
-            transform: translateY(-4px);
+            transform: translateX(8px);
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
         }
 
@@ -581,9 +723,9 @@
         }
 
         .work-title {
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             font-weight: 400;
-            line-height: 1.7;
+            line-height: 1.6;
             color: var(--text-primary);
         }
 
@@ -659,6 +801,38 @@
         }
 
         /* ========== Responsive ========== */
+        @media (max-width: 1024px) {
+            .hero {
+                grid-template-columns: 1fr;
+                gap: 3rem;
+            }
+
+            .hero-visual {
+                order: -1;
+            }
+
+            .hero-image-wrapper {
+                max-width: 350px;
+            }
+
+            .about-container {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+
+            .about-image {
+                height: 300px;
+            }
+
+            .works-container {
+                grid-template-columns: 1fr;
+            }
+
+            .works-image {
+                min-height: 250px;
+            }
+        }
+
         @media (max-width: 900px) {
             nav {
                 padding: 1rem 1.5rem;
@@ -688,21 +862,12 @@
                 padding: 3rem 1.5rem;
             }
 
-            .about-grid {
-                grid-template-columns: 1fr;
-                gap: 2rem;
-            }
-
             .about-stats {
                 gap: 2rem;
             }
 
             .expertise-grid {
                 grid-template-columns: repeat(2, 1fr);
-            }
-
-            .works-grid {
-                grid-template-columns: 1fr;
             }
 
             .contact-grid {
@@ -724,6 +889,10 @@
 
             .hero-links {
                 flex-direction: column;
+            }
+
+            .hero-image-wrapper {
+                max-width: 280px;
             }
 
             .expertise-grid {
@@ -793,6 +962,13 @@
                 <a href="https://x.com/Kai_tech_XR" target="_blank" class="hero-link secondary">X / Twitter</a>
             </div>
         </div>
+        <div class="hero-visual fade-in delay-2">
+            <div class="hero-image-wrapper">
+                <div class="hero-image-border"></div>
+                <div class="hero-image-glow"></div>
+                <img src="https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=800&q=80" alt="Cyber Technology" class="hero-image">
+            </div>
+        </div>
     </section>
 
     <!-- About Section -->
@@ -801,30 +977,32 @@
             <p class="section-label">About</p>
             <h2 class="section-title">テクノロジーの未来を伝える</h2>
         </div>
-        <div class="about-grid reveal">
-            <div>
+        <div class="about-container reveal">
+            <div class="about-image-wrapper">
+                <img src="https://images.unsplash.com/photo-1518770660439-4636190af475?w=800&q=80" alt="Technology Circuit" class="about-image">
+                <div class="about-image-overlay"></div>
+            </div>
+            <div class="about-content">
                 <p class="about-text">
                     innovaTopiaで活動するテクノロジーライターとして、AI、XR、半導体、宇宙技術など先端分野の最新動向を発信。Apple、Google、Meta、NVIDIAなど大手IT企業の動向から、スタートアップの革新的技術まで幅広くカバーしています。
                 </p>
-            </div>
-            <div>
                 <blockquote class="about-quote">
                     "今起きている技術革新が、SF作品で描かれた未来とどう重なるのか。その視点から、複雑な技術を分かりやすく伝えることを心がけています。"
                 </blockquote>
-            </div>
-        </div>
-        <div class="about-stats reveal">
-            <div class="stat-item">
-                <div class="stat-number">500+</div>
-                <div class="stat-label">Articles</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-number">8</div>
-                <div class="stat-label">Tech Fields</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-number">2024</div>
-                <div class="stat-label">Active</div>
+                <div class="about-stats">
+                    <div class="stat-item">
+                        <div class="stat-number">500+</div>
+                        <div class="stat-label">Articles</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">8</div>
+                        <div class="stat-label">Tech Fields</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">2024</div>
+                        <div class="stat-label">Active</div>
+                    </div>
+                </div>
             </div>
         </div>
     </section>
@@ -921,49 +1099,45 @@
             </div>
             <a href="https://innovatopia.jp/author/kai/" target="_blank" class="works-more">すべて見る →</a>
         </div>
-        <div class="works-grid reveal">
-            <a href="https://innovatopia.jp/vrar/vrar-news/73306/" target="_blank" class="work-item">
-                <div class="work-meta">
-                    <span class="work-category">XR / 取材</span>
-                    <span class="work-date">2025.12.03</span>
+        <div class="works-container reveal">
+            <div class="works-image-wrapper">
+                <img src="https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=800&q=80" alt="AI Technology" class="works-image">
+                <div class="works-image-overlay"></div>
+                <div class="works-image-text">
+                    <h3>Latest Tech Coverage</h3>
+                    <p>AI、XR、半導体など最新テクノロジーを深掘り</p>
                 </div>
-                <h3 class="work-title">XREAL、ARグラス単体で2D→3D変換を実現する「XREAL 1S」を発表</h3>
-            </a>
-            <a href="https://innovatopia.jp/vrar/vrar-news/72052/" target="_blank" class="work-item">
-                <div class="work-meta">
-                    <span class="work-category">AI × XR</span>
-                    <span class="work-date">2025.11.21</span>
-                </div>
-                <h3 class="work-title">カラダが消える日——AIとXRが解体する「現実」の定義</h3>
-            </a>
-            <a href="https://innovatopia.jp/spacetechnology/spacetechnology-news/72875/" target="_blank" class="work-item">
-                <div class="work-meta">
-                    <span class="work-category">宇宙技術</span>
-                    <span class="work-date">2025.11.27</span>
-                </div>
-                <h3 class="work-title">ハーバード大ローブ博士はなぜ、3I/ATLASを『母船』と呼び続けるのか</h3>
-            </a>
-            <a href="https://innovatopia.jp/ai/ai-news/71738/" target="_blank" class="work-item">
-                <div class="work-meta">
-                    <span class="work-category">AI</span>
-                    <span class="work-date">2025.11.14</span>
-                </div>
-                <h3 class="work-title">Google DeepMind「SIMA 2」、Geminiを活用した仮想世界AIエージェント</h3>
-            </a>
-            <a href="https://innovatopia.jp/vrar/vrar-news/68902/" target="_blank" class="work-item">
-                <div class="work-meta">
-                    <span class="work-category">XR / 分析</span>
-                    <span class="work-date">2025.10.17</span>
-                </div>
-                <h3 class="work-title">Apple Vision Pro、空間コンピューティングは６畳で成立するか？</h3>
-            </a>
-            <a href="https://innovatopia.jp/ai/ai-news/71098/" target="_blank" class="work-item">
-                <div class="work-meta">
-                    <span class="work-category">ゲーム AI</span>
-                    <span class="work-date">2025.11.07</span>
-                </div>
-                <h3 class="work-title">Cygamesと東京藝術大学、ゲームAI開発ツール共同研究を開始</h3>
-            </a>
+            </div>
+            <div class="works-grid">
+                <a href="https://innovatopia.jp/vrar/vrar-news/73306/" target="_blank" class="work-item">
+                    <div class="work-meta">
+                        <span class="work-category">XR / 取材</span>
+                        <span class="work-date">2025.12.03</span>
+                    </div>
+                    <h3 class="work-title">XREAL、ARグラス単体で2D→3D変換を実現する「XREAL 1S」を発表</h3>
+                </a>
+                <a href="https://innovatopia.jp/vrar/vrar-news/72052/" target="_blank" class="work-item">
+                    <div class="work-meta">
+                        <span class="work-category">AI × XR</span>
+                        <span class="work-date">2025.11.21</span>
+                    </div>
+                    <h3 class="work-title">カラダが消える日——AIとXRが解体する「現実」の定義</h3>
+                </a>
+                <a href="https://innovatopia.jp/spacetechnology/spacetechnology-news/72875/" target="_blank" class="work-item">
+                    <div class="work-meta">
+                        <span class="work-category">宇宙技術</span>
+                        <span class="work-date">2025.11.27</span>
+                    </div>
+                    <h3 class="work-title">ハーバード大ローブ博士はなぜ、3I/ATLASを『母船』と呼び続けるのか</h3>
+                </a>
+                <a href="https://innovatopia.jp/ai/ai-news/71738/" target="_blank" class="work-item">
+                    <div class="work-meta">
+                        <span class="work-category">AI</span>
+                        <span class="work-date">2025.11.14</span>
+                    </div>
+                    <h3 class="work-title">Google DeepMind「SIMA 2」、Geminiを活用した仮想世界AIエージェント</h3>
+                </a>
+            </div>
         </div>
     </section>
 
