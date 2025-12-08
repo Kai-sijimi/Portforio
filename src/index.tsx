@@ -417,6 +417,9 @@ function getMainHTML() {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>乗杉 海 | Technology Journalist - AI・XR・半導体・宇宙技術の最新動向</title>
     
+    <!-- Google Search Console Verification -->
+    <meta name="google-site-verification" content="zQ_HPYVo9xsu-Oex1feWPnXKIqtoUF9P9UxNX4Xqq48" />
+    
     <!-- SEO Meta Tags -->
     <meta name="description" content="乗杉海（Kai Norisugi）のポートフォリオ＆テックブログ。innovaTopiaで活動するテクノロジージャーナリストとして、AI、XR/VR/AR、半導体、宇宙技術など先端分野の最新動向を発信。">
     <meta name="keywords" content="乗杉海,Kai Norisugi,テクノロジージャーナリスト,AI,XR,VR,AR,半導体,宇宙技術,メタバース,innovaTopia,テックライター">
