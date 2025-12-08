@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blog | 乗杉 海</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Noto+Sans+JP:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0a0a0f;
+            --bg-card: #12121a;
+            --bg-hover: #1a1a25;
+            --text-primary: #ffffff;
+            --text-secondary: #8a8a9a;
+            --accent: #00d4ff;
+            --accent-dim: rgba(0, 212, 255, 0.15);
+            --accent-glow: rgba(0, 212, 255, 0.4);
+            --border: rgba(255, 255, 255, 0.08);
+            --gradient-cyber: linear-gradient(135deg, #00d4ff 0%, #7b2cbf 100%);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', 'Noto Sans JP', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-primary);
+            line-height: 1.7;
+            font-weight: 300;
+            overflow-x: hidden;
+        }
+
+        #cyber-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .cyber-grid {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                linear-gradient(rgba(0, 212, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 212, 255, 0.03) 1px, transparent 1px);
+            background-size: 60px 60px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .cyber-glow {
+            position: fixed;
+            width: 600px;
+            height: 600px;
+            border-radius: 50%;
+            filter: blur(120px);
+            opacity: 0.15;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .glow-1 {
+            top: -200px;
+            right: -100px;
+            background: var(--accent);
+        }
+
+        .glow-2 {
+            bottom: -200px;
+            left: -100px;
+            background: #7b2cbf;
+        }
+
+        /* Navigation */
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            padding: 0.75rem 3rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(10, 10, 15, 0.85);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .logo {
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            text-decoration: none;
+            letter-spacing: 0.05em;
+        }
+
+        .logo span {
+            color: var(--accent);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2.5rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.85rem;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .nav-links a:hover, .nav-links a.active {
+            color: var(--accent);
+        }
+
+        .hamburger {
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            gap: 5px;
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+            background: none;
+            border: none;
+            padding: 0;
+        }
+
+        .hamburger span {
+            display: block;
+            width: 100%;
+            height: 1.5px;
+            background: var(--accent);
+            transition: all 0.3s ease;
+        }
+
+        .hamburger.active span:nth-child(1) {
+            transform: rotate(45deg) translate(5px, 5px);
+        }
+
+        .hamburger.active span:nth-child(2) {
+            opacity: 0;
+        }
+
+        .hamburger.active span:nth-child(3) {
+            transform: rotate(-45deg) translate(5px, -5px);
+        }
+
+        .mobile-menu {
+            display: none;
+            position: fixed;
+            top: 52px;
+            left: 0;
+            right: 0;
+            background: rgba(10, 10, 15, 0.95);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            padding: 1.5rem;
+            z-index: 99;
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+            pointer-events: none;
+        }
+
+        .mobile-menu.active {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+        }
+
+        .mobile-menu a {
+            display: block;
+            padding: 0.75rem 0;
+            color: var(--text-primary);
+            text-decoration: none;
+            font-size: 0.95rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .mobile-menu a:last-child {
+            border-bottom: none;
+        }
+
+        /* Main Content */
+        main {
+            position: relative;
+            z-index: 1;
+            padding: 80px 3rem 3rem;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        /* Page Header */
+        .page-header {
+            margin-bottom: 2.5rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .page-label {
+            font-size: 0.65rem;
+            font-weight: 500;
+            letter-spacing: 0.2em;
+            color: var(--accent);
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+        }
+
+        .page-title {
+            font-size: 2rem;
+            font-weight: 600;
+            background: var(--gradient-cyber);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .page-description {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        /* Blog List */
+        .blog-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+        }
+
+        .blog-item {
+            padding: 1.5rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            text-decoration: none;
+            color: inherit;
+            transition: all 0.3s ease;
+            display: block;
+        }
+
+        .blog-item:hover {
+            border-color: rgba(0, 212, 255, 0.3);
+            transform: translateX(8px);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .blog-meta {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .blog-date {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+        }
+
+        .blog-category {
+            font-size: 0.6rem;
+            color: var(--accent);
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            padding: 0.2rem 0.6rem;
+            background: var(--accent-dim);
+            border-radius: 100px;
+        }
+
+        .blog-title {
+            font-size: 1.1rem;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+            line-height: 1.5;
+        }
+
+        .blog-excerpt {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            line-height: 1.7;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .blog-tags {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .blog-tag {
+            font-size: 0.65rem;
+            color: var(--text-secondary);
+            padding: 0.25rem 0.6rem;
+            border: 1px solid var(--border);
+            border-radius: 100px;
+        }
+
+        /* Featured Post */
+        .featured-post {
+            margin-bottom: 2rem;
+        }
+
+        .featured-post .blog-item {
+            position: relative;
+            overflow: hidden;
+            padding: 2rem;
+        }
+
+        .featured-post .blog-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--gradient-cyber);
+        }
+
+        .featured-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            font-size: 0.6rem;
+            color: var(--accent);
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            margin-bottom: 0.75rem;
+        }
+
+        .featured-badge::before {
+            content: '★';
+        }
+
+        .featured-post .blog-title {
+            font-size: 1.35rem;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+        }
+
+        .empty-state-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .empty-state-title {
+            font-size: 1.1rem;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+
+        .empty-state-text {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        /* Footer */
+        footer {
+            padding: 1.5rem 3rem;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            z-index: 1;
+            max-width: 900px;
+            margin: 3rem auto 0;
+        }
+
+        footer p, footer a {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        footer a {
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        footer a:hover {
+            color: var(--accent);
+        }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            nav {
+                padding: 0.75rem 1.5rem;
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+            .hamburger {
+                display: flex;
+            }
+
+            .mobile-menu {
+                display: block;
+            }
+
+            main {
+                padding: 70px 1.5rem 2rem;
+            }
+
+            .page-title {
+                font-size: 1.5rem;
+            }
+
+            .featured-post .blog-title {
+                font-size: 1.15rem;
+            }
+
+            footer {
+                padding: 1.25rem 1.5rem;
+                flex-direction: column;
+                gap: 0.35rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="cyber-canvas"></canvas>
+    <div class="cyber-grid"></div>
+    <div class="cyber-glow glow-1"></div>
+    <div class="cyber-glow glow-2"></div>
+
+    <nav>
+        <a href="index.html" class="logo">乗杉<span>_</span>海</a>
+        <ul class="nav-links">
+            <li><a href="index.html#about">About</a></li>
+            <li><a href="index.html#expertise">Expertise</a></li>
+            <li><a href="index.html#works">Works</a></li>
+            <li><a href="blog.html" class="active">Blog</a></li>
+            <li><a href="index.html#contact">Contact</a></li>
+        </ul>
+        <button class="hamburger" aria-label="メニュー">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+    </nav>
+
+    <div class="mobile-menu">
+        <a href="index.html#about">About</a>
+        <a href="index.html#expertise">Expertise</a>
+        <a href="index.html#works">Works</a>
+        <a href="blog.html">Blog</a>
+        <a href="index.html#contact">Contact</a>
+    </div>
+
+    <main>
+        <header class="page-header">
+            <p class="page-label">Blog & Diary</p>
+            <h1 class="page-title">ブログ / 日記</h1>
+            <p class="page-description">テクノロジーに関する考察、日々の気づき、取材の裏話などを綴っています。</p>
+        </header>
+
+        <!-- Featured Post -->
+        <div class="featured-post">
+            <a href="blog/2025-12-08-first-post.html" class="blog-item">
+                <span class="featured-badge">Featured</span>
+                <div class="blog-meta">
+                    <span class="blog-date">2025.12.08</span>
+                    <span class="blog-category">日記</span>
+                </div>
+                <h2 class="blog-title">ポートフォリオサイトを作りました</h2>
+                <p class="blog-excerpt">
+                    ついにポートフォリオサイトを公開しました。サイバーパンクな雰囲気のデザインにこだわり、パーティクルアニメーションやネオンエフェクトを実装。テクノロジージャーナリストとしての活動をまとめた場所ができて嬉しいです。
+                </p>
+                <div class="blog-tags">
+                    <span class="blog-tag">ポートフォリオ</span>
+                    <span class="blog-tag">Web開発</span>
+                    <span class="blog-tag">デザイン</span>
+                </div>
+            </a>
+        </div>
+
+        <!-- Blog List -->
+        <div class="blog-list">
+            <a href="blog/2025-12-07-xr-future.html" class="blog-item">
+                <div class="blog-meta">
+                    <span class="blog-date">2025.12.07</span>
+                    <span class="blog-category">テック考察</span>
+                </div>
+                <h2 class="blog-title">XRデバイスの未来について考える</h2>
+                <p class="blog-excerpt">
+                    Apple Vision ProやMeta Quest 3の登場で、XR市場は新たな局面を迎えている。ARグラスの軽量化が進む中、XREALやNrealの動向にも注目が集まる。空間コンピューティングの普及には何が必要なのか。
+                </p>
+                <div class="blog-tags">
+                    <span class="blog-tag">XR</span>
+                    <span class="blog-tag">Vision Pro</span>
+                    <span class="blog-tag">AR</span>
+                </div>
+            </a>
+
+            <a href="blog/2025-12-05-ai-writing.html" class="blog-item">
+                <div class="blog-meta">
+                    <span class="blog-date">2025.12.05</span>
+                    <span class="blog-category">日記</span>
+                </div>
+                <h2 class="blog-title">AI時代のテクノロジーライターとして</h2>
+                <p class="blog-excerpt">
+                    ChatGPTやClaudeが普及する中、テクノロジーライターの役割はどう変わるのか。AIを活用しながらも、人間ならではの視点や取材力を活かすバランスについて考えた一日。
+                </p>
+                <div class="blog-tags">
+                    <span class="blog-tag">AI</span>
+                    <span class="blog-tag">ライティング</span>
+                    <span class="blog-tag">働き方</span>
+                </div>
+            </a>
+
+            <a href="blog/2025-12-01-sf-tech.html" class="blog-item">
+                <div class="blog-meta">
+                    <span class="blog-date">2025.12.01</span>
+                    <span class="blog-category">テック考察</span>
+                </div>
+                <h2 class="blog-title">SFが現実になる瞬間を追いかけて</h2>
+                <p class="blog-excerpt">
+                    子供の頃に読んだSF小説。そこに描かれていた未来が、少しずつ現実になっている。AIアシスタント、VRゴーグル、自動運転車。テクノロジーの進化を伝える仕事の醍醐味について。
+                </p>
+                <div class="blog-tags">
+                    <span class="blog-tag">SF</span>
+                    <span class="blog-tag">テクノロジー</span>
+                    <span class="blog-tag">未来</span>
+                </div>
+            </a>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 乗杉 海</p>
+        <a href="index.html">← ホームに戻る</a>
+    </footer>
+
+    <script>
+        // Hamburger menu
+        const hamburger = document.querySelector('.hamburger');
+        const mobileMenu = document.querySelector('.mobile-menu');
+
+        hamburger.addEventListener('click', () => {
+            hamburger.classList.toggle('active');
+            mobileMenu.classList.toggle('active');
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!hamburger.contains(e.target) && !mobileMenu.contains(e.target)) {
+                hamburger.classList.remove('active');
+                mobileMenu.classList.remove('active');
+            }
+        });
+
+        // Cyber Particle Animation
+        const canvas = document.getElementById('cyber-canvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+        let mouseX = 0, mouseY = 0;
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        document.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+        });
+
+        class Particle {
+            constructor() { this.reset(); }
+            reset() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 2 + 0.5;
+                this.speedX = (Math.random() - 0.5) * 0.5;
+                this.speedY = (Math.random() - 0.5) * 0.5;
+                this.opacity = Math.random() * 0.5 + 0.2;
+                this.color = Math.random() > 0.7 ? '#7b2cbf' : '#00d4ff';
+            }
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                const dx = mouseX - this.x, dy = mouseY - this.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance < 150) {
+                    const force = (150 - distance) / 150;
+                    this.x -= dx * force * 0.02;
+                    this.y -= dy * force * 0.02;
+                }
+                if (this.x < 0) this.x = canvas.width;
+                if (this.x > canvas.width) this.x = 0;
+                if (this.y < 0) this.y = canvas.height;
+                if (this.y > canvas.height) this.y = 0;
+            }
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.globalAlpha = this.opacity;
+                ctx.fill();
+                ctx.globalAlpha = 1;
+            }
+        }
+
+        const particleCount = Math.min(60, Math.floor(window.innerWidth / 25));
+        for (let i = 0; i < particleCount; i++) particles.push(new Particle());
+
+        function drawConnections() {
+            for (let i = 0; i < particles.length; i++) {
+                for (let j = i + 1; j < particles.length; j++) {
+                    const dx = particles[i].x - particles[j].x;
+                    const dy = particles[i].y - particles[j].y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    if (distance < 120) {
+                        ctx.beginPath();
+                        ctx.moveTo(particles[i].x, particles[i].y);
+                        ctx.lineTo(particles[j].x, particles[j].y);
+                        ctx.strokeStyle = `rgba(0, 212, 255, ${(120 - distance) / 120 * 0.15})`;
+                        ctx.lineWidth = 0.5;
+                        ctx.stroke();
+                    }
+                }
+            }
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(p => { p.update(); p.draw(); });
+            drawConnections();
+            requestAnimationFrame(animate);
+        }
+        animate();
+    </script>
+</body>
+</html>

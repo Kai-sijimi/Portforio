@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ポートフォリオサイトを作りました | 乗杉 海</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Noto+Sans+JP:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0a0a0f;
+            --bg-card: #12121a;
+            --text-primary: #ffffff;
+            --text-secondary: #8a8a9a;
+            --accent: #00d4ff;
+            --accent-dim: rgba(0, 212, 255, 0.15);
+            --border: rgba(255, 255, 255, 0.08);
+            --gradient-cyber: linear-gradient(135deg, #00d4ff 0%, #7b2cbf 100%);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Inter', 'Noto Sans JP', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-primary);
+            line-height: 1.8;
+            font-weight: 300;
+        }
+
+        #cyber-canvas {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .cyber-grid {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-image: 
+                linear-gradient(rgba(0, 212, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 212, 255, 0.03) 1px, transparent 1px);
+            background-size: 60px 60px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        nav {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            z-index: 100;
+            padding: 0.75rem 3rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(10, 10, 15, 0.85);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .logo {
+            font-size: 1rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            text-decoration: none;
+        }
+        .logo span { color: var(--accent); }
+
+        .nav-links {
+            display: flex;
+            gap: 2.5rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.85rem;
+            transition: color 0.3s ease;
+        }
+        .nav-links a:hover, .nav-links a.active { color: var(--accent); }
+
+        .hamburger {
+            display: none;
+            flex-direction: column;
+            gap: 5px;
+            width: 24px; height: 24px;
+            cursor: pointer;
+            background: none;
+            border: none;
+        }
+        .hamburger span {
+            width: 100%; height: 1.5px;
+            background: var(--accent);
+            transition: all 0.3s ease;
+        }
+
+        .mobile-menu {
+            display: none;
+            position: fixed;
+            top: 52px; left: 0; right: 0;
+            background: rgba(10, 10, 15, 0.95);
+            padding: 1.5rem;
+            z-index: 99;
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+            pointer-events: none;
+        }
+        .mobile-menu.active {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+        }
+        .mobile-menu a {
+            display: block;
+            padding: 0.75rem 0;
+            color: var(--text-primary);
+            text-decoration: none;
+            border-bottom: 1px solid var(--border);
+        }
+
+        /* Article */
+        article {
+            position: relative;
+            z-index: 1;
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 80px 2rem 3rem;
+        }
+
+        .article-header {
+            margin-bottom: 2.5rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.8rem;
+            color: var(--accent);
+            text-decoration: none;
+            margin-bottom: 1.5rem;
+            transition: gap 0.3s ease;
+        }
+        .back-link:hover { gap: 0.75rem; }
+
+        .article-meta {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .article-date {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .article-category {
+            font-size: 0.6rem;
+            color: var(--accent);
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            padding: 0.2rem 0.6rem;
+            background: var(--accent-dim);
+            border-radius: 100px;
+        }
+
+        .article-title {
+            font-size: 1.75rem;
+            font-weight: 600;
+            line-height: 1.4;
+            background: var(--gradient-cyber);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+        }
+
+        .article-tags {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .article-tag {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            padding: 0.3rem 0.75rem;
+            border: 1px solid var(--border);
+            border-radius: 100px;
+        }
+
+        /* Content */
+        .article-content {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+        }
+
+        .article-content h2 {
+            font-size: 1.25rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin: 2.5rem 0 1rem;
+            padding-left: 1rem;
+            border-left: 3px solid var(--accent);
+        }
+
+        .article-content h3 {
+            font-size: 1.1rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            margin: 2rem 0 0.75rem;
+        }
+
+        .article-content p {
+            margin-bottom: 1.5rem;
+            line-height: 2;
+        }
+
+        .article-content ul, .article-content ol {
+            margin: 1.5rem 0;
+            padding-left: 1.5rem;
+        }
+
+        .article-content li {
+            margin-bottom: 0.5rem;
+        }
+
+        .article-content blockquote {
+            margin: 2rem 0;
+            padding: 1.25rem 1.5rem;
+            background: var(--bg-card);
+            border-left: 3px solid var(--accent);
+            border-radius: 0 8px 8px 0;
+            font-style: italic;
+            color: var(--text-primary);
+        }
+
+        .article-content code {
+            font-family: 'SF Mono', Monaco, monospace;
+            font-size: 0.85em;
+            padding: 0.2rem 0.5rem;
+            background: var(--bg-card);
+            border-radius: 4px;
+            color: var(--accent);
+        }
+
+        .article-content a {
+            color: var(--accent);
+            text-decoration: none;
+            border-bottom: 1px solid transparent;
+            transition: border-color 0.3s ease;
+        }
+        .article-content a:hover {
+            border-bottom-color: var(--accent);
+        }
+
+        .article-content img {
+            max-width: 100%;
+            border-radius: 12px;
+            margin: 2rem 0;
+            border: 1px solid var(--border);
+        }
+
+        /* Footer */
+        .article-footer {
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .share-section {
+            margin-bottom: 2rem;
+        }
+
+        .share-title {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            margin-bottom: 0.75rem;
+        }
+
+        .share-buttons {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .share-btn {
+            padding: 0.6rem 1.25rem;
+            font-size: 0.8rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text-primary);
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        .share-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .nav-posts {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .nav-post {
+            padding: 1rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        .nav-post:hover {
+            border-color: rgba(0, 212, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .nav-post-label {
+            font-size: 0.65rem;
+            color: var(--accent);
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            margin-bottom: 0.35rem;
+        }
+
+        .nav-post-title {
+            font-size: 0.85rem;
+            color: var(--text-primary);
+            line-height: 1.5;
+        }
+
+        .nav-post.next {
+            text-align: right;
+        }
+
+        footer {
+            padding: 1.5rem 2rem;
+            border-top: 1px solid var(--border);
+            text-align: center;
+            position: relative;
+            z-index: 1;
+            max-width: 720px;
+            margin: 0 auto;
+        }
+
+        footer p, footer a {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+        footer a { text-decoration: none; }
+        footer a:hover { color: var(--accent); }
+
+        @media (max-width: 768px) {
+            nav { padding: 0.75rem 1.5rem; }
+            .nav-links { display: none; }
+            .hamburger { display: flex; }
+            .mobile-menu { display: block; }
+            article { padding: 70px 1.5rem 2rem; }
+            .article-title { font-size: 1.35rem; }
+            .nav-posts { grid-template-columns: 1fr; }
+            .nav-post.next { text-align: left; }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="cyber-canvas"></canvas>
+    <div class="cyber-grid"></div>
+
+    <nav>
+        <a href="../index.html" class="logo">乗杉<span>_</span>海</a>
+        <ul class="nav-links">
+            <li><a href="../index.html#about">About</a></li>
+            <li><a href="../index.html#works">Works</a></li>
+            <li><a href="../blog.html" class="active">Blog</a></li>
+            <li><a href="../index.html#contact">Contact</a></li>
+        </ul>
+        <button class="hamburger" aria-label="メニュー">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+    </nav>
+
+    <div class="mobile-menu">
+        <a href="../index.html#about">About</a>
+        <a href="../index.html#works">Works</a>
+        <a href="../blog.html">Blog</a>
+        <a href="../index.html#contact">Contact</a>
+    </div>
+
+    <article>
+        <header class="article-header">
+            <a href="../blog.html" class="back-link">← ブログ一覧に戻る</a>
+            <div class="article-meta">
+                <span class="article-date">2025.12.08</span>
+                <span class="article-category">日記</span>
+            </div>
+            <h1 class="article-title">ポートフォリオサイトを作りました</h1>
+            <div class="article-tags">
+                <span class="article-tag">ポートフォリオ</span>
+                <span class="article-tag">Web開発</span>
+                <span class="article-tag">デザイン</span>
+            </div>
+        </header>
+
+        <div class="article-content">
+            <p>
+                ついに、念願のポートフォリオサイトを公開しました！テクノロジージャーナリストとして活動を始めてから、ずっと「自分の活動をまとめた場所が欲しい」と思っていました。
+            </p>
+
+            <h2>サイバーパンクなデザインへのこだわり</h2>
+
+            <p>
+                デザインは、自分の専門分野である「テクノロジー」を表現したいと考えました。特にこだわったのは以下のポイントです：
+            </p>
+
+            <ul>
+                <li><strong>ダークテーマ</strong> — 目に優しく、サイバー感のある深い黒を基調に</li>
+                <li><strong>ネオンカラー</strong> — シアンブルーとパープルのグラデーションでSF的な雰囲気を演出</li>
+                <li><strong>パーティクルアニメーション</strong> — 背景で光の粒子がネットワークのように繋がる</li>
+                <li><strong>マウスインタラクション</strong> — カーソルに反応して粒子が避けていく</li>
+            </ul>
+
+            <blockquote>
+                「SFが現実になる瞬間を追いかける」というテーマを、サイト自体のデザインでも表現したかった。
+            </blockquote>
+
+            <h2>技術スタック</h2>
+
+            <p>
+                今回のサイトは、静的サイトとしてGitHub Pagesにホスティングしています。フレームワークは使わず、純粋なHTML/CSS/JavaScriptで構築しました。
+            </p>
+
+            <p>
+                パーティクルアニメーションは<code>Canvas API</code>を使い、<code>requestAnimationFrame</code>で60fpsのスムーズな描画を実現。粒子同士の距離を計算して線で結ぶことで、ニューラルネットワークのような視覚効果を作り出しています。
+            </p>
+
+            <h2>これからやりたいこと</h2>
+
+            <p>
+                このブログ機能を活用して、以下のようなコンテンツを発信していきたいと思っています：
+            </p>
+
+            <ul>
+                <li>取材の裏話や、記事には書けなかったこと</li>
+                <li>テクノロジーに対する個人的な考察</li>
+                <li>読んだ本やプレイしたゲームの感想</li>
+                <li>日々の気づきや学び</li>
+            </ul>
+
+            <p>
+                innovaTopiaでの執筆とは違った、もう少しカジュアルな視点で発信していければと思います。よければ、また遊びに来てください！
+            </p>
+        </div>
+
+        <footer class="article-footer">
+            <div class="share-section">
+                <p class="share-title">Share</p>
+                <div class="share-buttons">
+                    <a href="https://twitter.com/intent/tweet?text=ポートフォリオサイトを作りました&url=https://kai-sijimi.github.io/Portforio/blog/2025-12-08-first-post.html" target="_blank" class="share-btn">X / Twitter</a>
+                </div>
+            </div>
+
+            <nav class="nav-posts">
+                <div></div>
+                <a href="2025-12-07-xr-future.html" class="nav-post next">
+                    <p class="nav-post-label">次の記事 →</p>
+                    <p class="nav-post-title">XRデバイスの未来について考える</p>
+                </a>
+            </nav>
+        </footer>
+    </article>
+
+    <footer>
+        <p>&copy; 2025 乗杉 海 · <a href="../blog.html">ブログ一覧</a> · <a href="../index.html">ホーム</a></p>
+    </footer>
+
+    <script>
+        const hamburger = document.querySelector('.hamburger');
+        const mobileMenu = document.querySelector('.mobile-menu');
+        hamburger.addEventListener('click', () => {
+            hamburger.classList.toggle('active');
+            mobileMenu.classList.toggle('active');
+        });
+
+        // Particle Animation
+        const canvas = document.getElementById('cyber-canvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 1.5 + 0.5;
+                this.speedX = (Math.random() - 0.5) * 0.3;
+                this.speedY = (Math.random() - 0.5) * 0.3;
+                this.opacity = Math.random() * 0.4 + 0.1;
+                this.color = Math.random() > 0.7 ? '#7b2cbf' : '#00d4ff';
+            }
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                if (this.x < 0) this.x = canvas.width;
+                if (this.x > canvas.width) this.x = 0;
+                if (this.y < 0) this.y = canvas.height;
+                if (this.y > canvas.height) this.y = 0;
+            }
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.globalAlpha = this.opacity;
+                ctx.fill();
+                ctx.globalAlpha = 1;
+            }
+        }
+
+        for (let i = 0; i < 40; i++) particles.push(new Particle());
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(p => { p.update(); p.draw(); });
+            requestAnimationFrame(animate);
+        }
+        animate();
+    </script>
+</body>
+</html>
