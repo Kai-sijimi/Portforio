@@ -167,6 +167,62 @@ app.get('/api/posts', async (c) => {
   }
 })
 
+// タグ一覧取得（記事数付き）
+app.get('/api/tags', async (c) => {
+  try {
+    const { results } = await c.env.DB.prepare(
+      `SELECT tags FROM posts WHERE status = 'published' AND tags IS NOT NULL AND tags != ''`
+    ).all()
+
+    // タグをカウント
+    const tagCounts: Record<string, number> = {}
+    for (const row of results as any[]) {
+      const tags = row.tags.split(',')
+      for (const tag of tags) {
+        const trimmedTag = tag.trim()
+        if (trimmedTag) {
+          tagCounts[trimmedTag] = (tagCounts[trimmedTag] || 0) + 1
+        }
+      }
+    }
+
+    // ソートして返す（記事数の多い順）
+    const sortedTags = Object.entries(tagCounts)
+      .map(([name, count]) => ({ name, count }))
+      .sort((a, b) => b.count - a.count)
+
+    return c.json({ tags: sortedTags })
+  } catch (e) {
+    console.error('Fetch tags error:', e)
+    return c.json({ error: 'Failed to fetch tags' }, 500)
+  }
+})
+
+// タグ別記事一覧取得
+app.get('/api/posts/tag/:tag', async (c) => {
+  const tag = decodeURIComponent(c.req.param('tag'))
+
+  try {
+    const { results } = await c.env.DB.prepare(
+      `SELECT id, slug, title, excerpt, category, tags, featured, published_at 
+       FROM posts 
+       WHERE status = 'published' AND tags LIKE ?
+       ORDER BY featured DESC, published_at DESC`
+    ).bind(`%${tag}%`).all()
+
+    // タグが完全一致するものだけフィルタリング
+    const filteredPosts = (results as any[]).filter(post => {
+      const postTags = post.tags.split(',').map((t: string) => t.trim())
+      return postTags.includes(tag)
+    })
+
+    return c.json({ posts: filteredPosts, tag })
+  } catch (e) {
+    console.error('Fetch posts by tag error:', e)
+    return c.json({ error: 'Failed to fetch posts' }, 500)
+  }
+})
+
 // 公開記事詳細取得
 app.get('/api/posts/:slug', async (c) => {
   const slug = c.req.param('slug')

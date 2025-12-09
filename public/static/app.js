@@ -9,6 +9,7 @@ let currentPath = window.location.pathname;
 const routes = {
   '/': renderPortfolio,
   '/blog': renderBlogList,
+  '/blog/tag/:tag': renderBlogByTag,
   '/blog/:slug': renderPostDetail,
   '/admin': redirectToLogin,
   '/admin/login': renderLogin,
@@ -366,8 +367,13 @@ async function renderBlogList() {
   initMobileMenu();
   
   try {
-    const res = await api('/posts');
-    const { posts } = await res.json();
+    // 記事とタグを並行で取得
+    const [postsRes, tagsRes] = await Promise.all([
+      api('/posts'),
+      api('/tags')
+    ]);
+    const { posts } = await postsRes.json();
+    const { tags } = await tagsRes.json();
     
     const featuredPost = posts.find(p => p.featured);
     const regularPosts = posts.filter(p => !p.featured);
@@ -379,6 +385,25 @@ async function renderBlogList() {
         <p class="blog-desc">テクノロジーに関する考察、日々の気づき、取材の裏話などを綴っています。</p>
       </header>
 
+      <!-- タグクラウド -->
+      ${tags && tags.length > 0 ? `
+        <section class="tag-cloud-section">
+          <h3 class="tag-cloud-title">🏷️ タグで探す</h3>
+          <div class="tag-cloud">
+            ${tags.map(tag => `
+              <a href="/blog/tag/${encodeURIComponent(tag.name)}" 
+                 class="tag-cloud-item" 
+                 data-count="${tag.count}"
+                 onclick="event.preventDefault(); navigate('/blog/tag/${encodeURIComponent(tag.name)}')"
+                 style="--tag-size: ${Math.min(1 + tag.count * 0.15, 1.5)}">
+                ${tag.name}
+                <span class="tag-count">${tag.count}</span>
+              </a>
+            `).join('')}
+          </div>
+        </section>
+      ` : ''}
+
       ${featuredPost ? `
         <div class="featured">
           <a href="/blog/${featuredPost.slug}" class="post-card featured-card" onclick="event.preventDefault(); navigate('/blog/${featuredPost.slug}')">
@@ -389,7 +414,7 @@ async function renderBlogList() {
             </div>
             <h2>${featuredPost.title}</h2>
             <p class="excerpt">${featuredPost.excerpt}</p>
-            <div class="tags">${renderTags(featuredPost.tags)}</div>
+            <div class="tags">${renderClickableTags(featuredPost.tags)}</div>
           </a>
         </div>
       ` : ''}
@@ -403,7 +428,7 @@ async function renderBlogList() {
             </div>
             <h2>${post.title}</h2>
             <p class="excerpt">${post.excerpt}</p>
-            <div class="tags">${renderTags(post.tags)}</div>
+            <div class="tags">${renderClickableTags(post.tags)}</div>
           </a>
         `).join('')}
       </div>
@@ -411,6 +436,87 @@ async function renderBlogList() {
       ${posts.length === 0 ? `
         <div class="empty">
           <p>まだ記事がありません</p>
+        </div>
+      ` : ''}
+    `;
+  } catch (e) {
+    document.querySelector('.blog-main').innerHTML = `<div class="error">記事の読み込みに失敗しました</div>`;
+  }
+}
+
+// タグ別記事一覧
+async function renderBlogByTag({ tag }) {
+  const decodedTag = decodeURIComponent(tag);
+  
+  app().innerHTML = `
+    ${renderBackground()}
+    ${renderNav('blog')}
+    <main class="blog-main">
+      <div class="loading"><div class="spinner"></div></div>
+    </main>
+    ${renderFooter()}
+  `;
+  
+  initParticles();
+  initMobileMenu();
+  
+  try {
+    // タグ別記事と全タグを並行で取得
+    const [postsRes, tagsRes] = await Promise.all([
+      api(`/posts/tag/${encodeURIComponent(decodedTag)}`),
+      api('/tags')
+    ]);
+    const { posts } = await postsRes.json();
+    const { tags } = await tagsRes.json();
+
+    document.querySelector('.blog-main').innerHTML = `
+      <header class="blog-header">
+        <a href="/blog" onclick="event.preventDefault(); navigate('/blog')" class="back-to-blog">← ブログ一覧に戻る</a>
+        <p class="section-label">TAG</p>
+        <h1 class="section-title tag-page-title">
+          <span class="tag-icon">🏷️</span>
+          ${decodedTag}
+        </h1>
+        <p class="blog-desc">「${decodedTag}」タグの記事一覧（${posts.length}件）</p>
+      </header>
+
+      <!-- タグクラウド -->
+      ${tags && tags.length > 0 ? `
+        <section class="tag-cloud-section">
+          <h3 class="tag-cloud-title">🏷️ 他のタグを探す</h3>
+          <div class="tag-cloud">
+            ${tags.map(t => `
+              <a href="/blog/tag/${encodeURIComponent(t.name)}" 
+                 class="tag-cloud-item ${t.name === decodedTag ? 'active' : ''}" 
+                 data-count="${t.count}"
+                 onclick="event.preventDefault(); navigate('/blog/tag/${encodeURIComponent(t.name)}')"
+                 style="--tag-size: ${Math.min(1 + t.count * 0.15, 1.5)}">
+                ${t.name}
+                <span class="tag-count">${t.count}</span>
+              </a>
+            `).join('')}
+          </div>
+        </section>
+      ` : ''}
+
+      <div class="posts-list">
+        ${posts.map(post => `
+          <a href="/blog/${post.slug}" class="post-card" onclick="event.preventDefault(); navigate('/blog/${post.slug}')">
+            <div class="meta">
+              <span class="date">${formatDate(post.published_at)}</span>
+              <span class="category">${post.category}</span>
+            </div>
+            <h2>${post.title}</h2>
+            <p class="excerpt">${post.excerpt}</p>
+            <div class="tags">${renderClickableTags(post.tags, decodedTag)}</div>
+          </a>
+        `).join('')}
+      </div>
+
+      ${posts.length === 0 ? `
+        <div class="empty">
+          <p>このタグの記事はまだありません</p>
+          <a href="/blog" onclick="event.preventDefault(); navigate('/blog')" class="back-link">ブログ一覧に戻る</a>
         </div>
       ` : ''}
     `;
@@ -455,7 +561,7 @@ async function renderPostDetail({ slug }) {
           </div>
           <h1>${post.title}</h1>
           ${post.excerpt ? `<p class="lead">${post.excerpt}</p>` : ''}
-          <div class="tags">${renderTags(post.tags)}</div>
+          <div class="tags">${renderClickableTags(post.tags)}</div>
         </header>
         
         <div class="content">
@@ -894,6 +1000,19 @@ function formatDate(dateStr) {
 function renderTags(tags) {
   if (!tags) return '';
   return tags.split(',').map(tag => `<span class="tag">${tag.trim()}</span>`).join('');
+}
+
+// クリッカブルなタグをレンダリング
+function renderClickableTags(tags, activeTag = '') {
+  if (!tags) return '';
+  return tags.split(',').map(tag => {
+    const trimmedTag = tag.trim();
+    const isActive = trimmedTag === activeTag;
+    return `<span class="tag clickable-tag ${isActive ? 'active' : ''}" 
+                  onclick="event.preventDefault(); event.stopPropagation(); navigate('/blog/tag/${encodeURIComponent(trimmedTag)}')">
+              ${trimmedTag}
+            </span>`;
+  }).join('');
 }
 
 function escapeHtml(text) {

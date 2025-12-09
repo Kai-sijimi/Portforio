@@ -1343,4 +1343,135 @@ footer a:hover { color: var(--accent); }
   .stats-grid { grid-template-columns: 1fr; }
   .form-row { flex-direction: column; }
   .actions { flex-direction: column; }
+  .tag-cloud { gap: 0.5rem; }
+  .tag-cloud-item { padding: 0.4rem 0.7rem; font-size: 0.75rem; }
+}
+
+/* ==================== Tag Cloud Section ==================== */
+.tag-cloud-section {
+  margin: var(--space-xl) 0;
+  padding: var(--space-lg);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.tag-cloud-title {
+  font-size: var(--font-base);
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin-bottom: var(--space-md);
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.tag-cloud {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  align-items: center;
+}
+
+.tag-cloud-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 0.9rem;
+  background: var(--accent-dim);
+  border: 1px solid transparent;
+  border-radius: 20px;
+  color: var(--accent);
+  font-size: calc(var(--font-sm) * var(--tag-size, 1));
+  font-weight: 400;
+  text-decoration: none;
+  transition: all 0.25s ease;
+  cursor: pointer;
+}
+
+.tag-cloud-item:hover {
+  background: var(--accent);
+  color: var(--bg-dark);
+  border-color: var(--accent);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px var(--accent-glow);
+}
+
+.tag-cloud-item.active {
+  background: var(--accent);
+  color: var(--bg-dark);
+  border-color: var(--accent);
+  font-weight: 500;
+}
+
+.tag-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.4em;
+  height: 1.4em;
+  padding: 0 0.3em;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 10px;
+  font-size: 0.75em;
+  font-weight: 500;
+}
+
+.tag-cloud-item:hover .tag-count,
+.tag-cloud-item.active .tag-count {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+/* ==================== Clickable Tags ==================== */
+.clickable-tag {
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.clickable-tag:hover {
+  background: var(--accent);
+  color: var(--bg-dark);
+  transform: translateY(-1px);
+}
+
+.clickable-tag.active {
+  background: var(--accent);
+  color: var(--bg-dark);
+  font-weight: 500;
+}
+
+/* ==================== Tag Page Styles ==================== */
+.back-to-blog {
+  display: inline-block;
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: var(--font-sm);
+  margin-bottom: var(--space-md);
+  transition: color 0.2s;
+}
+
+.back-to-blog:hover {
+  color: var(--accent);
+}
+
+.tag-page-title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.tag-icon {
+  font-size: 0.9em;
+}
+
+/* Tag page responsive */
+@media (max-width: 600px) {
+  .tag-cloud-section {
+    padding: var(--space-md);
+    margin: var(--space-lg) 0;
+  }
+  
+  .tag-page-title {
+    font-size: var(--font-xl);
+  }
 }
